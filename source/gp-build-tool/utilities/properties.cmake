@@ -120,3 +120,53 @@ function(gpbt_isInScope scopeName outVal)
     set(${outVal} FALSE PARENT_SCOPE)
   endif()
 endfunction()
+
+# @brief Set a property namespaced to the current scope.
+# @param[in] key The property key.
+# @param[in] value The value to set.
+function(gpbt_setScopedProperty key value)
+  gpbt_currentScope(_scope)
+  gpbt_setProperty("__GPBT_SCOPED_${_scope}__${key}" "${value}")
+endfunction()
+
+# @brief Set multiple properties in the current scope from alternating key-value pairs.
+# @param[in] ARGN Alternating key value pairs.
+function(gpbt_setBulkScopedProperties)
+  list(LENGTH ARGN _len)
+  math(EXPR _pairs "${_len} / 2")
+  set(_i 0)
+  while(_i LESS _pairs)
+    math(EXPR _ki "${_i} * 2")
+    math(EXPR _vi "${_ki} + 1")
+    list(GET ARGN ${_ki} _key)
+    list(GET ARGN ${_vi} _val)
+    gpbt_setScopedProperty("${_key}" "${_val}")
+    math(EXPR _i "${_i} + 1")
+  endwhile()
+endfunction()
+
+# @brief Get a property namespaced to the current scope.
+# @param[in] key The property key.
+# @param[out] outVar The variable to store the retrieved value.
+function(gpbt_getScopedProperty key outVar)
+  gpbt_currentScope(_scope)
+  gpbt_getProperty("__GPBT_SCOPED_${_scope}__${key}" _val)
+  set(${outVar} "${_val}" PARENT_SCOPE)
+endfunction()
+
+# @brief Append a value to a scoped property treated as a list.
+# @param[in] key The property key.
+# @param[in] value The value to append.
+function(gpbt_appendScopedProperty key value)
+  gpbt_currentScope(_scope)
+  gpbt_appendProperty("__GPBT_SCOPED_${_scope}__${key}" "${value}")
+endfunction()
+
+# @brief Pop the last value from a scoped property treated as a list.
+# @param[in] key The property key.
+# @param[out] outVar The variable to store the popped value.
+function(gpbt_popScopedProperty key outVar)
+  gpbt_currentScope(_scope)
+  gpbt_popProperty("__GPBT_SCOPED_${_scope}__${key}" _val)
+  set(${outVar} "${_val}" PARENT_SCOPE)
+endfunction()
