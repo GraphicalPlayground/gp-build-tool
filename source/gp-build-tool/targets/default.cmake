@@ -55,9 +55,6 @@ function(gpbt_setupTargetProperties inTargetType inTargetName inTargetLocation)
     "${inTargetLocation}/internal/*.cxx"
   )
 
-  # Push a specific scope for the target properties
-  gpbt_pushScope("${cleanTargetName}")
-
   gpbt_setBulkScopedProperties(
     _targetName "${inTargetName}"
     _targetCleanName "${cleanTargetName}"
@@ -122,6 +119,13 @@ function(gpbt_startTarget inTargetType inTargetName inTargetLocation)
 
   # Set the flag to indicate we're now in a target definition
   gpbt_setProperty(GPBT_IS_IN_TARGET_DEFINITION TRUE)
+
+  # Clean the target name
+  string(REGEX REPLACE "[^a-zA-Z0-9_]+" "_" cleanTargetName "${inTargetName}")
+  string(TOLOWER cleanTargetName "${cleanTargetName}")
+
+  # Push a specific scope for the target properties
+  gpbt_pushScope("${cleanTargetName}")
 
   # Set up the initial properties for the target.
   # Will only run during the REGISTRATION phase
