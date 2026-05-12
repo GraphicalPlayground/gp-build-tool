@@ -8,3 +8,8 @@ set(GPBT_CURRENT_VERSION "0.4.0")
 # Options of the unit tests for the build tool
 option(GPBT_TESTS_ENABLED "Set to true to run build tool tests" FALSE)
 option(GPBT_TESTS_FILTER_SECTION "If set, only run test sections that contain this string in their name" "")
+
+# Logging
+option(GPBT_LOG_PREFIX_ENABLED "Set to true to enable log prefix" TRUE)
+option(GPBT_LOG_VERBOSE_ENABLED "Set to true to enable verbose logging" FALSE)
+option(GPBT_LOG_BANNER_ENABLED "Set to true to enable log banner" TRUE)
