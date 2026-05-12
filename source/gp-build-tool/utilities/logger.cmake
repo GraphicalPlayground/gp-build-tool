@@ -37,6 +37,9 @@ function(_gpbt_resolveLevelBadge outColor outBadge severity)
   elseif("${severity}" STREQUAL "VERBOSE")
     set(${outColor} "${GPBT_COLOR_FG_HI_BOLD_PURPLE}" PARENT_SCOPE)
     set(${outBadge} "[VERBOSE]" PARENT_SCOPE)
+  elseif("${severity}" STREQUAL "BULLET")
+    set(${outColor} "${GPBT_COLOR_FG_HI_WHITE}" PARENT_SCOPE)
+    set(${outBadge} "    -" PARENT_SCOPE)
   else()
     set(${outColor} "${GPBT_COLOR_FG_HI_WHITE}" PARENT_SCOPE)
     set(${outBadge} "[  LOG  ]" PARENT_SCOPE)
@@ -84,7 +87,7 @@ function(gpbt_restorePreviousLogPrefixEnabled)
 endfunction()
 
 # @brief Log a message at the given severity level.
-# @param[in] severity ERROR | FATAL | WARNING | INFO | SUCCESS | DEBUG | VERBOSE | LOG
+# @param[in] severity ERROR | FATAL | WARNING | INFO | SUCCESS | DEBUG | VERBOSE | BULLET
 # @param[in] ... Message tokens, joined with spaces.
 function(gpbt_log severity)
   if("${severity}" STREQUAL "VERBOSE" AND NOT GPBT_LOG_VERBOSE_ENABLED)
