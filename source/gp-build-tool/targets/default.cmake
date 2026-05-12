@@ -5,22 +5,21 @@
 include(gp-build-tool/utilities/properties)
 include(gp-build-tool/utilities/strings)
 include(gp-build-tool/utilities/logger)
-
+include(gp-build-tool/targets/utilities/shared)
 if(GPBT_DUMP_TARGETS_PROPERTIES)
   include(gp-build-tool/targets/utilities/dump)
 endif()
 
 set(GPBT_AVAILABLE_TARGET_TYPES "executable;module;plugin")
 
-function(gpbt_startTarget inTargetType inTargetName inTargetLocation)
-  # Check if we're already in a target definition
-  gpbt_getProperty(GPBT_IS_IN_TARGET_DEFINITION isInTargetDefinition)
-  if(isInTargetDefinition)
-    gpbt_log(FATAL "gpbt_startTarget called while already in a target definition")
-  endif()
-
-  # Set the flag to indicate we're now in a target definition
-  gpbt_setProperty(GPBT_IS_IN_TARGET_DEFINITION TRUE)
+# @brief Internal function to set up the properties for a new target definition.
+# @param[in] inTargetType The type of the target (e.g., "executable", "module", "plugin").
+# @param[in] inTargetName The name of the target.
+# @param[in] inTargetLocation The file system location of the target (used for generating a unique guid and finding source files).
+# @remarks This function only run on the REGISTRATION phase.
+function(gpbt_setupTargetProperties inTargetType inTargetName inTargetLocation)
+  gpbt_checkInTargetDefinition("gpbt_setupTargetProperties")
+  gpbt_runOnlyDuringPhase("REGISTRATION")
 
   # Check if the provided target type is valid
   string(TOLOWER "${inTargetType}" inTargetType)
@@ -100,15 +99,44 @@ function(gpbt_startTarget inTargetType inTargetName inTargetLocation)
 
   # Set separately to avoid ARGN list-flattening in gpbt_setBulkScopedProperties
   gpbt_setScopedProperty("_targetSources" "${targetSources}")
+
+  # Add the target to the global list of targets
+  gpbt_appendProperty(GPBT_TARGETS "${cleanTargetName}")
+
+  # Simple log about the target registration
+  gpbt_log(INFO "Registered target: ${inTargetName} (Type: ${inTargetType})")
 endfunction()
 
-function(gpbt_endTarget)
+# @brief Start the definition of a new target.
+# @param[in] inTargetType The type of the target (e.g., "executable", "module", "plugin").
+# @param[in] inTargetName The name of the target.
+# @param[in] inTargetLocation The file system location of the target (used for generating a unique guid and finding source files).
+# @remarks This function must be called at the beginning of a target definition and will set up the initial properties for the target.
+# @remarks It must be paired with a corresponding gpbt_endTarget() call to properly close the target definition.
+function(gpbt_startTarget inTargetType inTargetName inTargetLocation)
+  # Check if we're already in a target definition
   gpbt_getProperty(GPBT_IS_IN_TARGET_DEFINITION isInTargetDefinition)
-  if(NOT isInTargetDefinition)
-    gpbt_log(FATAL "gpbt_endTarget called without a matching gpbt_startTarget")
+  if(isInTargetDefinition)
+    gpbt_log(FATAL "gpbt_startTarget called while already in a target definition")
   endif()
 
+  # Set the flag to indicate we're now in a target definition
+  gpbt_setProperty(GPBT_IS_IN_TARGET_DEFINITION TRUE)
+
+  # Set up the initial properties for the target.
+  # Will only run during the REGISTRATION phase
+  gpbt_setupTargetProperties("${inTargetType}" "${inTargetName}" "${inTargetLocation}")
+endfunction()
+
+# @brief End the definition of the current target.
+# @remarks This function must be called at the end of a target definition to properly close it and perform any necessary finalization steps.
+# @remarks If GPBT_DUMP_TARGETS_PROPERTIES is enabled, this function will also dump all properties of the target to the log for debugging purposes.
+# @remarks It must be called after a gpbt_startTarget() call to properly close the target definition.
+function(gpbt_endTarget)
+  gpbt_checkInTargetDefinition("gpbt_endTarget")
+
   if(GPBT_DUMP_TARGETS_PROPERTIES)
+    # Will only run during the CONFIGURATION phase
     gpbt_dumpTargetProperties()
   endif()
 
