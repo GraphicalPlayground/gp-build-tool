@@ -1,0 +1,19 @@
+name: Run GP Build Tool tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Build and test
+        run: |
+          cmake -S . -B build -DGPBT_TESTS_ENABLED=TRUE -DGPBT_IS_RUNNED_IN_CI=TRUE
