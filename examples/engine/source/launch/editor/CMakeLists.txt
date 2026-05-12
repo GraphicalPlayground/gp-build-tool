@@ -4,5 +4,5 @@
 
 include(gp-build-tool)
 
-gpbt_startTarget("executable" "editor" "${CMAKE_CURRENT_SOURCE_DIR}")
-gpbt_endTarget()
+gpStartExecutable(editor)
+gpEndExecutable()

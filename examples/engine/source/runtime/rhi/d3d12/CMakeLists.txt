@@ -4,5 +4,5 @@
 
 include(gp-build-tool)
 
-gpbt_startTarget("module" "rhi/d3d12" "${CMAKE_CURRENT_SOURCE_DIR}")
-gpbt_endTarget()
+gpStartModule(rhi/d3d12)
+gpEndModule()
