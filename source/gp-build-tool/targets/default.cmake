@@ -41,6 +41,21 @@ function(gpbt_startTarget inTargetType inTargetName inTargetLocation)
   # Convert the target location to a MD5 guid
   string(MD5 targetGuid "${inTargetLocation}")
 
+  # Find C/C++ sources in the `/private` and `/internal` folders
+  file(GLOB_RECURSE targetSources FOLLOW_SYMLINKS CONFIGURE_DEPENDS
+    # Private folder
+    "${inTargetLocation}/private/*.c"
+    "${inTargetLocation}/private/*.cc"
+    "${inTargetLocation}/private/*.cpp"
+    "${inTargetLocation}/private/*.cxx"
+
+    # Internal folder
+    "${inTargetLocation}/internal/*.c"
+    "${inTargetLocation}/internal/*.cc"
+    "${inTargetLocation}/internal/*.cpp"
+    "${inTargetLocation}/internal/*.cxx"
+  )
+
   # Push a specific scope for the target properties
   gpbt_pushScope("${cleanTargetName}")
 
@@ -55,7 +70,6 @@ function(gpbt_startTarget inTargetType inTargetName inTargetLocation)
     _targetLocation "${inTargetLocation}"
     _targetCustomFolder ""
 
-    _targetSources ""
     _targetPreCompiledHeaders ""
 
     _targetPublicIncludeDirectories "${inTargetLocation}/public"
@@ -83,6 +97,9 @@ function(gpbt_startTarget inTargetType inTargetName inTargetLocation)
     _targetEnableStrictWarnings TRUE
     _targetEnableUnityBuild FALSE
   )
+
+  # Set separately to avoid ARGN list-flattening in gpbt_setBulkScopedProperties
+  gpbt_setScopedProperty("_targetSources" "${targetSources}")
 endfunction()
 
 function(gpbt_endTarget)
