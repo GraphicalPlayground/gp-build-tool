@@ -7,3 +7,7 @@ cmake_minimum_required(VERSION 3.28)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/source")
 
 project(gp-build-tool)
+
+include(gp-build-tool)
+
+message(STATUS "This is runned after included gp-build-tool.cmake")
