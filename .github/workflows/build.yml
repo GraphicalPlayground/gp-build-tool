@@ -7,13 +7,16 @@ on:
     branches: [main]
 
 jobs:
-  run:
-    runs-on: ubuntu-latest
+  build-examples:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Build and test
+      - name: Build GPBT examples
         run: |
           cmake -S . -B build -DGPBT_IS_RUNNED_IN_CI=TRUE -DGPBT_LOG_VERBOSE_ENABLED=TRUE -DGPBT_DUMP_TARGETS_PROPERTIES=TRUE
