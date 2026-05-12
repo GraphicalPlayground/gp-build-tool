@@ -16,4 +16,4 @@ if(GPBT_TESTS_ENABLED)
   return()
 endif()
 
-include(gp-build-tool/targets/default)
+include(gp-build-tool/api)
