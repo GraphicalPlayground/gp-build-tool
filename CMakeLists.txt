@@ -10,4 +10,4 @@ project(gp-build-tool)
 
 include(gp-build-tool)
 
-message(STATUS "This is runned after included gp-build-tool.cmake")
+add_subdirectory(examples/engine)
