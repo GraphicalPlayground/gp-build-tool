@@ -41,7 +41,7 @@ function(gpbt_dumpTargetProperties)
   gpbt_getScopedProperty(_targetEnableStrictWarnings targetEnableStrictWarnings)
   gpbt_getScopedProperty(_targetEnableUnityBuild targetEnableUnityBuild)
 
-  gpbt_startGroup("Dumping properties for target '${targetName}'")
+  gpbt_startGroup("[DUMP] '${targetName}'")
   gpbt_logSection("Target: '${targetName}' properties")
 
   gpbt_log(DEBUG "Name: ${targetName}")
