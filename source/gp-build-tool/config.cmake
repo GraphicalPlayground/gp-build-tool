@@ -10,7 +10,7 @@ option(GPBT_TESTS_ENABLED "Set to true to run build tool tests" FALSE)
 option(GPBT_TESTS_FILTER_SECTION "If set, only run test sections that contain this string in their name" "")
 
 # Logging
-option(GPBT_LOG_PREFIX_ENABLED "Set to true to enable log prefix" TRUE)
+option(GPBT_LOG_PREFIX_ENABLED "Set to true to enable log prefix" FALSE)
 option(GPBT_TREAT_WARNINGS_AS_FATAL "Set to true to treat warnings as fatal errors" FALSE)
 option(GPBT_TREAT_ERRORS_AS_FATAL "Set to true to treat errors as fatal" FALSE)
 option(GPBT_LOG_VERBOSE_ENABLED "Set to true to enable verbose logging" FALSE)
