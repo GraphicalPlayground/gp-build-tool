@@ -10,4 +10,9 @@ project(gp-build-tool)
 
 include(gp-build-tool)
 
-add_subdirectory(examples/engine)
+# Either run the GPBT tests or configure the example targets, depending on the GPBT_TESTS_ENABLED flag
+if(GPBT_TESTS_ENABLED)
+  return()
+else()
+  add_subdirectory(examples/engine)
+endif()
