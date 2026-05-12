@@ -2,6 +2,8 @@
 # For more information, see https://graphical-playground/legal
 # mailto:support AT graphical-playground DOT com
 
+include(gp-build-tool/targets/utilities/shared)
+
 # @brief Utility functions for dumping target properties to the log for debugging purposes.
 # @param[in] groupName Name of the property group to log, e.g. "Sources", "PublicIncludeDirectories", etc.
 # @param[in] list The list variable containing the properties to log.
@@ -18,10 +20,8 @@ endmacro()
 
 # @brief Dump all properties of the current target to the log for debugging purposes.
 function(gpbt_dumpTargetProperties)
-  gpbt_getProperty(GPBT_IS_IN_TARGET_DEFINITION isInTargetDefinition)
-  if(NOT isInTargetDefinition)
-    gpbt_log(FATAL "gpbt_dumpTargetProperties called without a matching gpbt_startTarget")
-  endif()
+  gpbt_checkInTargetDefinition("gpbt_dumpTargetProperties")
+  gpbt_runOnlyDuringPhase("CONFIGURATION")
 
   gpbt_getScopedProperty(_targetName targetName)
   gpbt_getScopedProperty(_targetCleanName targetCleanName)
