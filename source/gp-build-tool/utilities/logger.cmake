@@ -85,7 +85,11 @@ function(gpbt_log severity)
   message(STATUS "${formattedMessage}")
 
   # If the severity is FATAL, exit the program after logging the message.
-  if("${severity}" STREQUAL "FATAL")
+  if(
+    "${severity}" STREQUAL "FATAL" OR
+    ("${severity}" STREQUAL "WARNING" AND GPBT_TREAT_WARNINGS_AS_FATAL) OR
+    ("${severity}" STREQUAL "ERROR" AND GPBT_TREAT_ERRORS_AS_FATAL)
+    )
     message(FATAL_ERROR "Fatal error occurred. Exiting.")
   endif()
 endfunction()
