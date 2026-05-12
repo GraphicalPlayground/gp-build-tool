@@ -143,6 +143,11 @@ function(gpbt_logSection title)
   message(STATUS "")
 endfunction()
 
+# @brief Print a new empty line.
+function(gpbt_logNewLine)
+  message(STATUS "")
+endfunction()
+
 # @brief Print a plain horizontal separator.
 function(gpbt_logSeparator)
   _gpbt_buildPrefix(_prefix)
@@ -178,4 +183,21 @@ endfunction()
 function(gpbt_logEndSteps)
   gpbt_setProperty(GPBT_LOG_STEP_CURRENT 0)
   gpbt_setProperty(GPBT_LOG_STEP_TOTAL 0)
+endfunction()
+
+# @brief Begin a log group. Groups are only shown in Github CI environments and are ignored locally.
+# @param[in] groupName Name of the group, shown in CI logs.
+function(gpbt_startGroup groupName)
+  if(NOT GPBT_IS_RUNNED_IN_CI)
+    return()
+  endif()
+  message(STATUS "::group::${groupName}")
+endfunction()
+
+# @brief End a log group.
+function(gpbt_endGroup)
+  if(NOT GPBT_IS_RUNNED_IN_CI)
+    return()
+  endif()
+  message(STATUS "::endgroup::")
 endfunction()
