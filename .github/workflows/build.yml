@@ -1,0 +1,19 @@
+name: Run GPBT build on examples
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Build and test
+        run: |
+          cmake -S . -B build -DGPBT_IS_RUNNED_IN_CI=TRUE -DGPBT_LOG_VERBOSE_ENABLED=TRUE -DGPBT_DUMP_TARGETS_PROPERTIES=TRUE
