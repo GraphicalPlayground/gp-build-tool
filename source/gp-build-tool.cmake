@@ -5,6 +5,8 @@
 include(gp-build-tool/config)
 include(gp-build-tool/utilities/logger)
 
+include(gp-build-tool/defaulter)
+
 gpbt_getProperty(GPBT_HAS_LOGGED_BANNER hasLoggedBanner)
 if(GPBT_LOG_BANNER_ENABLED AND NOT hasLoggedBanner)
   gpbt_logBanner()
