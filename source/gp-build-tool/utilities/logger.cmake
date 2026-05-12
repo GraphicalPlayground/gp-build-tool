@@ -119,14 +119,65 @@ function(gpbt_logBanner)
     return()
   endif()
   _gpbt_buildPrefix(_prefix)
-  set(_border "${GPBT_COLOR_FG_HI_WHITE}================================================================${GPBT_COLOR_RESET}")
-  set(_name   "${GPBT_COLOR_FG_HI_BOLD_WHITE}Graphical Playground Build Tool${GPBT_COLOR_RESET}")
-  set(_ver    "${GPBT_COLOR_FG_HI_BLACK}v${GPBT_CURRENT_VERSION}${GPBT_COLOR_RESET}")
+  set(linesBorder "${GPBT_COLOR_FG_HI_WHITE}================================================================${GPBT_COLOR_RESET}")
+  set(toolName "${GPBT_COLOR_FG_HI_BOLD_WHITE}Graphical Playground Build Tool${GPBT_COLOR_RESET}")
+  set(toolVersion "${GPBT_COLOR_FG_HI_BLACK}v${GPBT_CURRENT_VERSION}${GPBT_COLOR_RESET}")
+
+  set(currentOS "${CMAKE_SYSTEM_NAME}")
+  set(currentArch "${CMAKE_SYSTEM_PROCESSOR}")
+  set(cxxCompiler "${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+  set(cxxStandard "C++${CMAKE_CXX_STANDARD}")
+  set(cmakeVersion "${CMAKE_VERSION}")
+  set(buildType "${CMAKE_BUILD_TYPE}")
+  set(generatorName "${CMAKE_GENERATOR}")
+
+  find_package(Git QUIET)
+  set(lastCommit "Unknown")
+  set(lastCommitDate "Unknown")
+  set(lastCommitAuthor "Unknown")
+  set(gitRepository "Unknown")
+  if(GIT_FOUND)
+    execute_process(
+      COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      OUTPUT_VARIABLE lastCommit
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    execute_process(
+      COMMAND ${GIT_EXECUTABLE} remote get-url origin
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      OUTPUT_VARIABLE gitRepository
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    execute_process(
+      COMMAND ${GIT_EXECUTABLE} log --format=%ad --date=short -1
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      OUTPUT_VARIABLE lastCommitDate
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    execute_process(
+      COMMAND ${GIT_EXECUTABLE} log --format=%an -1
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      OUTPUT_VARIABLE lastCommitAuthor
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+  endif()
+
   message(STATUS "")
-  message(STATUS "${_prefix}${_border}")
-  message(STATUS "${_prefix}           ${_name}  ${_ver}")
-  message(STATUS "${_prefix}${_border}")
-  message(STATUS "")
+  message(STATUS "${_prefix}${linesBorder}")
+  message(STATUS "${_prefix}           ${toolName}  ${toolVersion}")
+  message(STATUS "${_prefix}${linesBorder}")
+
+  gpbt_logSection("Build Information")
+
+  message(STATUS "${_prefix}System:           ${currentOS} (${currentArch})")
+  message(STATUS "${_prefix}Compiler:         ${cxxCompiler}")
+  message(STATUS "${_prefix}Standard:         ${cxxStandard}")
+  message(STATUS "${_prefix}CMake:            ${cmakeVersion}")
+  message(STATUS "${_prefix}Build Type:       ${buildType}")
+  message(STATUS "${_prefix}Generator:        ${generatorName}")
+  message(STATUS "${_prefix}Git Commit:       ${lastCommit} by ${lastCommitAuthor} on ${lastCommitDate}")
+  message(STATUS "${_prefix}Git Repository:   ${gitRepository}")
 endfunction()
 
 # @brief Print a named section header.
