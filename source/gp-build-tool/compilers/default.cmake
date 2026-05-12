@@ -2,14 +2,14 @@
 # For more information, see https://graphical-playground/legal
 # mailto:support AT graphical-playground DOT com
 
-include(gp-build-tool/compilers/default)
+include(gp-build-tool/utilities/properties)
+include(gp-build-tool/utilities/strings)
+include(gp-build-tool/utilities/logger)
+include(gp-build-tool/targets/utilities/shared)
 
 # @brief Appends strict warning flags to the current target based on the compiler and platform.
 function(gpbt_appendStrictWarnings)
   gpbt_checkInTargetDefinition("gpbt_appendStrictWarnings")
   gpbt_runOnlyDuringPhase("CONFIGURATION")
-
-  gpbt_appendScopedProperty(_targetPrivateCompileOptions "-Wall")
-  gpbt_appendScopedProperty(_targetPrivateCompileOptions "-Wextra")
-  gpbt_appendScopedProperty(_targetPrivateCompileOptions "-Werror")
+  # Default implementation does nothing.
 endfunction()
