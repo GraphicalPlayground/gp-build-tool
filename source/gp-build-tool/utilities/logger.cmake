@@ -10,6 +10,8 @@ gpbt_setProperty(GPBT_CURRENT_LOG_PREFIX_ENABLED "${GPBT_LOG_PREFIX_ENABLED}")
 gpbt_setProperty(GPBT_PREVIOUS_LOG_PREFIX_ENABLED "${GPBT_CURRENT_LOG_PREFIX_ENABLED}")
 gpbt_setProperty(GPBT_LOG_STEP_CURRENT 0)
 gpbt_setProperty(GPBT_LOG_STEP_TOTAL 0)
+gpbt_setProperty(GPBT_LOG_STEP_CURRENT_STACK "")
+gpbt_setProperty(GPBT_LOG_STEP_TOTAL_STACK "")
 
 # @brief Resolve a severity name into a color code and a fixed-width 9-char badge.
 # @param[out] outColor Color code string for this severity level.
@@ -160,6 +162,14 @@ endfunction()
 # @brief Begin a step-counter block. Must be paired with gpbt_logEndSteps.
 # @param[in] total  Total number of steps expected in this block.
 function(gpbt_logBeginSteps total)
+  gpbt_getProperty(GPBT_LOG_STEP_CURRENT _current)
+  gpbt_getProperty(GPBT_LOG_STEP_TOTAL   _total)
+  gpbt_getProperty(GPBT_LOG_STEP_CURRENT_STACK _currentStack)
+  gpbt_getProperty(GPBT_LOG_STEP_TOTAL_STACK   _totalStack)
+  list(APPEND _currentStack "${_current}")
+  list(APPEND _totalStack   "${_total}")
+  gpbt_setProperty(GPBT_LOG_STEP_CURRENT_STACK "${_currentStack}")
+  gpbt_setProperty(GPBT_LOG_STEP_TOTAL_STACK   "${_totalStack}")
   gpbt_setProperty(GPBT_LOG_STEP_CURRENT 0)
   gpbt_setProperty(GPBT_LOG_STEP_TOTAL "${total}")
 endfunction()
@@ -184,8 +194,22 @@ endfunction()
 
 # @brief End a step-counter block and reset the counter.
 function(gpbt_logEndSteps)
-  gpbt_setProperty(GPBT_LOG_STEP_CURRENT 0)
-  gpbt_setProperty(GPBT_LOG_STEP_TOTAL 0)
+  gpbt_getProperty(GPBT_LOG_STEP_CURRENT_STACK _currentStack)
+  gpbt_getProperty(GPBT_LOG_STEP_TOTAL_STACK   _totalStack)
+  list(LENGTH _currentStack _len)
+  if(_len GREATER 0)
+    list(GET _currentStack -1 _prevCurrent)
+    list(GET _totalStack   -1 _prevTotal)
+    list(REMOVE_AT _currentStack -1)
+    list(REMOVE_AT _totalStack   -1)
+    gpbt_setProperty(GPBT_LOG_STEP_CURRENT_STACK "${_currentStack}")
+    gpbt_setProperty(GPBT_LOG_STEP_TOTAL_STACK   "${_totalStack}")
+    gpbt_setProperty(GPBT_LOG_STEP_CURRENT "${_prevCurrent}")
+    gpbt_setProperty(GPBT_LOG_STEP_TOTAL   "${_prevTotal}")
+  else()
+    gpbt_setProperty(GPBT_LOG_STEP_CURRENT 0)
+    gpbt_setProperty(GPBT_LOG_STEP_TOTAL 0)
+  endif()
 endfunction()
 
 # @brief Begin a log group. Groups are only shown in Github CI environments and are ignored locally.
