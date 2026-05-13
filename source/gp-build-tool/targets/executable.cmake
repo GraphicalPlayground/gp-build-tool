@@ -11,7 +11,9 @@ function(gpbt_defineCMakeExecutableTarget)
   gpbt_checkInTargetDefinition("gpbt_defineCMakeExecutableTarget")
   gpbt_runOnlyDuringPhase("CONFIGURATION")
 
-  gpbt_getScopedProperty(_targetType targetType)
-  gpbt_getScopedProperty(_targetName targetName)
+  # Get all the properties of the current target and store them in local variables.
+  gpbt_getAllScopedTargetProperty()
+
+  # Log the configuration of the target for better visibility in the build output.
   gpbt_log(INFO "Configuration of cmake target for: ${targetName} (Type: ${targetType})")
 endfunction()
