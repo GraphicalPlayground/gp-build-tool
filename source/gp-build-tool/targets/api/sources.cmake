@@ -24,6 +24,16 @@ endfunction()
 function(gpbt_addSourceDirectory)
   gpbt_checkInTargetDefinition("gpbt_addSourceDirectory")
   gpbt_runOnlyDuringPhase("REGISTRATION")
+
+  gpbt_getScopedProperty(_targetLocation targetLocation)
+  foreach(directory IN LIST ARGN)
+    file(RELATIVE_PATH relativeDirectory "${targetLocation}" "${directory}")
+    file(GLOB_RECURSE sourceFiles "${directory}/*.cpp" "${directory}/*.c" "${directory}/*.cxx" "${directory}/*.cc")
+    foreach(sourceFile IN LISTS sourceFiles)
+      file(RELATIVE_PATH relativeSourceFile "${targetLocation}" "${sourceFile}")
+      gpbt_appendScopedProperty(_targetSources "${relativeSourceFile}")
+    endforeach()
+  endforeach()
 endfunction()
 
 # @brief Add source files to the current target using a glob pattern.
@@ -32,6 +42,16 @@ endfunction()
 function(gpbt_addSourcePattern)
   gpbt_checkInTargetDefinition("gpbt_addSourcePattern")
   gpbt_runOnlyDuringPhase("REGISTRATION")
+
+  gpbt_getScopedProperty(_targetLocation targetLocation)
+  foreach(pattern IN LIST ARGN)
+    file(RELATIVE_PATH relativePattern "${targetLocation}" "${pattern}")
+    file(GLOB_RECURSE sourceFiles "${pattern}")
+    foreach(sourceFile IN LISTS sourceFiles)
+      file(RELATIVE_PATH relativeSourceFile "${targetLocation}" "${sourceFile}")
+      gpbt_appendScopedProperty(_targetSources "${relativeSourceFile}")
+    endforeach()
+  endforeach()
 endfunction()
 
 # @brief Exclude source file(s) from the current target.
