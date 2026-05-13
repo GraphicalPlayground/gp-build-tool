@@ -24,6 +24,9 @@ function(gpbt_sortTargets outSortedList)
   set(unsorted ${cleanRegisteredTargets})
   set(sorted "")
 
+  # Log the initial state for debugging purposes
+  gpbt_log(VERBOSE "Initial unsorted list: ${unsorted}")
+
   # Loop as long as we have unsorted targets AND we are making progress
   set(progressMade TRUE)
   while(unsorted AND progressMade)
@@ -33,10 +36,10 @@ function(gpbt_sortTargets outSortedList)
     foreach(target IN LISTS unsorted)
       # Fetch the combined dependencies for the current target
       gpbt_pushScope("${target}")
-      gpbt_getProperty(_targetPublicDependencies publicDependencies)
-      gpbt_getProperty(_targetInternalDependencies internalDependencies)
-      gpbt_getProperty(_targetPrivateDependencies privateDependencies)
-      gpbt_getProperty(_targetDynamicDependencies dynamicDependencies)
+      gpbt_getScopedProperty(_targetPublicDependencies publicDependencies)
+      gpbt_getScopedProperty(_targetInternalDependencies internalDependencies)
+      gpbt_getScopedProperty(_targetPrivateDependencies privateDependencies)
+      gpbt_getScopedProperty(_targetDynamicDependencies dynamicDependencies)
       gpbt_popScope()
 
       set(allDependencies ${publicDependencies} ${internalDependencies} ${privateDependencies} ${dynamicDependencies})
@@ -74,10 +77,10 @@ function(gpbt_sortTargets outSortedList)
   if(unsorted)
     foreach(target IN LISTS unsorted)
       gpbt_pushScope("${target}")
-      gpbt_getProperty(_targetPublicDependencies publicDependencies)
-      gpbt_getProperty(_targetInternalDependencies internalDependencies)
-      gpbt_getProperty(_targetPrivateDependencies privateDependencies)
-      gpbt_getProperty(_targetDynamicDependencies dynamicDependencies)
+      gpbt_getScopedProperty(_targetPublicDependencies publicDependencies)
+      gpbt_getScopedProperty(_targetInternalDependencies internalDependencies)
+      gpbt_getScopedProperty(_targetPrivateDependencies privateDependencies)
+      gpbt_getScopedProperty(_targetDynamicDependencies dynamicDependencies)
       gpbt_popScope()
 
       set(allDependencies ${publicDependencies} ${internalDependencies} ${privateDependencies} ${dynamicDependencies})
@@ -90,6 +93,9 @@ function(gpbt_sortTargets outSortedList)
     endforeach()
     gpbt_log(FATAL "Circular dependency detected! The following targets form an infinite dependency loop and cannot be ordered: ${unsorted}")
   endif()
+
+  # Log the final sorted order for debugging purposes
+  gpbt_log(VERBOSE "Final sorted list: ${sorted}")
 
   # Return the sorted list to the caller's scope
   set(${outSortedList} "${sorted}" PARENT_SCOPE)
