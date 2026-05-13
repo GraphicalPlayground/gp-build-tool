@@ -13,3 +13,10 @@ function(gpbt_appendStrictWarnings)
   gpbt_runOnlyDuringPhase("CONFIGURATION")
   # Default implementation does nothing.
 endfunction()
+
+# @brief Appends build type flags to the current target based on the compiler, platform and build type.
+function(gpbt_applyBuildTypeFlags)
+  gpbt_checkInTargetDefinition("gpbt_applyBuildTypeFlags")
+  gpbt_runOnlyDuringPhase("CONFIGURATION")
+  # Default implementation does nothing.
+endfunction()
