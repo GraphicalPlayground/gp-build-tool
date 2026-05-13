@@ -122,6 +122,12 @@ function(gpbt_setupTargetProperties inTargetType inTargetName inTargetLocation)
   # Set separately to avoid ARGN list-flattening in gpbt_setBulkScopedProperties
   gpbt_setScopedProperty("_targetSources" "${targetSources}")
 
+  # Check if the target doesn't already exist to prevent duplicate targets from being registered
+  gpbt_getProperty(GPBT_TARGETS existingTargets)
+  if("${cleanTargetName}" IN_LIST existingTargets)
+    gpbt_log(FATAL "Target already exists: ${inTargetName}")
+  endif()
+
   # Add the target to the global list of targets
   gpbt_appendProperty(GPBT_TARGETS "${cleanTargetName}")
 
