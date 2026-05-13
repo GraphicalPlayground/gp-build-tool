@@ -24,19 +24,25 @@ endfunction()
 
 # @brief Append a value to a global property treated as a list.
 # @param[in] propertyName The name of the property to append to.
-# @param[in] propertyValue The value to append.
-function(gpbt_appendProperty propertyName propertyValue)
+# @param[in] ... The values to append.
+function(gpbt_appendProperty propertyName)
   get_property(_set GLOBAL PROPERTY ${propertyName} SET)
+
   if(_set)
     get_property(_current GLOBAL PROPERTY ${propertyName})
   else()
     set(_current "")
   endif()
-  if(NOT "${_current}" STREQUAL "")
-    set_property(GLOBAL PROPERTY ${propertyName} "${_current};${propertyValue}")
-  else()
-    set_property(GLOBAL PROPERTY ${propertyName} "${propertyValue}")
-  endif()
+
+  # Create a local copy of the current property list
+  set(_new_list "${_current}")
+
+  # Safely append ALL remaining arguments passed to this function (${ARGN})
+  # list(APPEND) automatically handles semicolons and empty states correctly
+  list(APPEND _new_list ${ARGN})
+
+  # Save the new list back to the global property
+  set_property(GLOBAL PROPERTY ${propertyName} "${_new_list}")
 endfunction()
 
 # @brief Pop the last value from a global property treated as a list.
@@ -156,10 +162,10 @@ endfunction()
 
 # @brief Append a value to a scoped property treated as a list.
 # @param[in] key The property key.
-# @param[in] value The value to append.
-function(gpbt_appendScopedProperty key value)
+# @param[in] ... The values to append.
+function(gpbt_appendScopedProperty key)
   gpbt_currentScope(_scope)
-  gpbt_appendProperty("__GPBT_SCOPED_${_scope}__${key}" "${value}")
+  gpbt_appendProperty("__GPBT_SCOPED_${_scope}__${key}" ${ARGN})
 endfunction()
 
 # @brief Pop the last value from a scoped property treated as a list.
