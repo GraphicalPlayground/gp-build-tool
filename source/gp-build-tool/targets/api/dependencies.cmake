@@ -22,8 +22,21 @@ function(gpbt_addDependency visibility)
     gpbt_log(FATAL "Invalid dependency visibility: ${visibility}")
   endif()
 
+  # Gather all the existing dependencies for the current target to avoid duplicates and to maintain the complete list of dependencies.
+  gpbt_getScopedProperty(_targetPublicDependencies targetPublicDependencies)
+  gpbt_getScopedProperty(_targetPrivateDependencies targetPrivateDependencies)
+  gpbt_getScopedProperty(_targetInternalDependencies targetInternalDependencies)
+  gpbt_getScopedProperty(_targetDynamicDependencies targetDynamicDependencies)
+  set(allDependencies ${targetPublicDependencies} ${targetPrivateDependencies} ${targetInternalDependencies} ${targetDynamicDependencies})
+
   set(dependencies ${ARGN})
   foreach(dependency IN LISTS dependencies)
+    # Check if the dependency is already added to avoid duplicates.
+    if(dependency IN_LIST allDependencies)
+      gpbt_log(WARNING "Dependency '${dependency}' is already added to the target. Skipping duplicate.")
+      continue()
+    endif()
+
     if("${visibility}" STREQUAL "PUBLIC")
       gpbt_appendScopedProperty(_targetPublicDependencies "${dependency}")
     elseif("${visibility}" STREQUAL "PRIVATE")
