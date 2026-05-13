@@ -187,6 +187,10 @@ function(gpbt_endTarget)
     gpbt_appendStrictWarnings()
   endif()
 
+  # Apply build type flags based on the compiler, platform and build type.
+  # This will append the appropriate compiler flags based on the current build type (Debug, Development, Profile, Shipping) and the compiler being used.
+  gpbt_applyBuildTypeFlags()
+
   # Check for target with empty sources, which is usually a mistake and should be avoided.
   # This will log a warning to alert the user about the potential issue.
   gpbt_checkForEmptySources()
