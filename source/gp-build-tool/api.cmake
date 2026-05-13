@@ -128,3 +128,11 @@ endmacro()
 macro(gpExcludeSourcePattern)
   gpbt_excludeSourcePattern(${ARGN})
 endmacro()
+
+# @brief Add a dependency to the current target.
+# @param[in] visibility The visibility of the dependency (e.g., "PUBLIC", "PRIVATE", "INTERNAL", "DYNAMIC").
+# @param[in] ... The dependency target(s) to add. Can be a single target or a list of targets.
+# @remarks This function can be called multiple times to add more dependencies to the current target.
+macro(gpAddDependency visibility)
+  gpbt_addDependency("${visibility}" ${ARGN})
+endmacro()
