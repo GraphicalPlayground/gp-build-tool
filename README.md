@@ -9,9 +9,10 @@
 
 **Table of content**  
 [Overview](#overview)  
+┕ [The Problem](#the-problem)  
+┕ [The Solution](#the-solution)  
 ┕ [Getting Started](#getting-started)  
 ┕ [Prerequisites](#prerequisites)  
-...  
 [Documentation](#documentation)  
 [Contributing](#contributing)  
 ┕ [Code of Conduct](#code-of-conduct)  
@@ -21,15 +22,74 @@
 
 ## Overview
 
-{{CHANGE_ME}}
+`gp-build-tool` is a cmake-based build system designed to simplify the process of building and
+running the [Graphical Playground Engine](https://github.com/GraphicalPlayground/gp-engine)
+and its surrounding ecosystem.
+
+### The Problem
+
+Modern C++ graphics engines are complex. They require managing dozens of internal modules,
+third-party libraries, and platform-specific graphics APIs (Vulkan, D3D12, Metal). Traditional
+CMake setups often become tangled, brittle, and difficult to read. Furthermore, a standard CMake
+setup parses files top-to-bottom; if Module A depends on Module B, but B hasn't been scanned by
+the system yet, the configuration fails.
+
+### The Solution
+
+GPBT abstracts away the boilerplate of raw CMake, allowing developers and students to focus on
+writing high-performance graphics code instead of wrestling with build scripts. It provides a
+clean, macro-driven API that lets you state what a module needs rather than how to build it.
 
 ### Getting Started
 
-{{CHANGE_ME}}
+To start using the Graphical Playground Build Tool in your project, the recommended approach is to
+add it as a Git submodule and include it in your root CMake configuration.
+
+1. Add the submodule to your project:
+
+```bash
+git submodule add https://github.com/GraphicalPlayground/gp-build-tool.git thirdparty/gp-build-tool
+git submodule update --init --recursive
+```
+
+2. Include GPBT in your `CMakeLists.txt`:
+
+Once included, you can immediately start using the declarative API to define your engine targets,
+modules, and executables without worrying about build order.
+
+```cmake
+# Include the GPBT layer
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/gp-build-tool")
+include(gp-build-tool)
+
+# Define your first module
+gpStartModule(my_module)
+  # GPBT automatically discovers your public/ private/ and internal/ sources
+  gpAddDependency(PUBLIC core)
+  gpTargetSetTestsEnabled(TRUE)
+gpEndModule()
+```
+
+3. Generate and Build:
+
+```bash
+cmake -S . -B build -G Ninja
+cmake --build build
+```
 
 ### Prerequisites
 
-{{CHANGE_ME}}
+Since `gp-build-tool` orchestrates the compilation of modern, high-performance C++ code across
+multiple platforms, ensure your development environment meets the following requirements:
+
+- **CMake**: Version 3.28+ or newer.
+- **C++23 Compatible Compiler**:
+  - MSVC 19.38+ (Windows)
+  - Clang 16+ (Linux/macOS/Windows)
+  - GCC 13+ (Linux)
+- **Ninja Build System**: Highly recommended for optimal build throughput, especially when utilizing
+  GPBT's Unity Build features.
+- **Git**: For fetching the repository and managing third-party submodules.
 
 ## Documentation
 
@@ -38,6 +98,7 @@ are building your first triangle or writing a custom features, our guides are de
 experimentation.
 
 - [**Main Documentation Portal**](https://docs.graphical-playground.com)
+- [**Build Tool Guide**](https://docs.graphical-playground.com/docs/engine/build-tool)
 - [**Engine Introduction**](https://docs.graphical-playground.com/docs/engine/intro)
 - [**API Introduction**](https://docs.graphical-playground.com/docs/api/intro)
 
