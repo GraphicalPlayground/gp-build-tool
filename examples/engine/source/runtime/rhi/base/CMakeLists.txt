@@ -5,4 +5,6 @@
 include(gp-build-tool)
 
 gpStartModule(rhi/base)
+  gpAddDependency(PUBLIC core)
+  gpAddDependency(DYNAMIC rhi/d3d12)
 gpEndModule()

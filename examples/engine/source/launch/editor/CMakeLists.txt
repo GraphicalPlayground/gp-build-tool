@@ -5,4 +5,5 @@
 include(gp-build-tool)
 
 gpStartExecutable(editor)
+  gpAddDependency(PUBLIC core)
 gpEndExecutable()
