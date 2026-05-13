@@ -5,6 +5,9 @@
 # Global configuration for the build tool and its tests.
 set(GPBT_CURRENT_VERSION "0.4.0")
 
+# General options
+set(GPBT_ALLOWED_CONFIGS "Debug;Development;Profile;Shipping")
+
 # Options of the unit tests for the build tool
 option(GPBT_TESTS_ENABLED "Set to true to run build tool tests" FALSE)
 option(GPBT_TESTS_FILTER_SECTION "If set, only run test sections that contain this string in their name" "")
