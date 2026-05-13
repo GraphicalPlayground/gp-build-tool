@@ -60,6 +60,8 @@ endfunction()
 function(gpbt_excludeSourceFile)
   gpbt_checkInTargetDefinition("gpbt_excludeSourceFile")
   gpbt_runOnlyDuringPhase("CONFIGURATION")
+
+  # TODO: Add exlusion logic to remove the specified source files from the target's sources list.
 endfunction()
 
 # @brief Exclude source files from a directory from the current target.
@@ -68,6 +70,8 @@ endfunction()
 function(gpbt_excludeSourceDirectory)
   gpbt_checkInTargetDefinition("gpbt_excludeSourceDirectory")
   gpbt_runOnlyDuringPhase("CONFIGURATION")
+
+  # TODO: Add exlusion logic to remove source files from the specified directory from the target's sources list.
 endfunction()
 
 # @brief Exclude source files from the current target using a glob pattern.
@@ -76,4 +80,6 @@ endfunction()
 function(gpbt_excludeSourcePattern)
   gpbt_checkInTargetDefinition("gpbt_excludeSourcePattern")
   gpbt_runOnlyDuringPhase("CONFIGURATION")
+
+  # TODO: Add exlusion logic to remove source files matching the specified pattern from the target's sources list.
 endfunction()
