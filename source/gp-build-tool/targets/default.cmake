@@ -180,13 +180,6 @@ endfunction()
 function(gpbt_endTarget)
   gpbt_checkInTargetDefinition("gpbt_endTarget")
 
-  # Apply strict warnings if enabled for the target.
-  # This will append the appropriate compiler flags to enable strict warnings based on the compiler being used.
-  gpbt_getScopedProperty(_targetEnableStrictWarnings enableStrictWarnings)
-  if(enableStrictWarnings)
-    gpbt_appendStrictWarnings()
-  endif()
-
   # Apply build type flags based on the compiler, platform and build type.
   # This will append the appropriate compiler flags based on the current build type (Debug, Development, Profile, Shipping) and the compiler being used.
   gpbt_applyBuildTypeFlags()
