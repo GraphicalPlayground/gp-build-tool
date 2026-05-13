@@ -6,6 +6,7 @@ include(gp-build-tool/utilities/properties)
 include(gp-build-tool/utilities/strings)
 include(gp-build-tool/utilities/logger)
 include(gp-build-tool/targets/utilities/shared)
+include(gp-build-tool/targets/utilities/validation)
 include(gp-build-tool/targets/executable)
 include(gp-build-tool/targets/module)
 include(gp-build-tool/targets/plugin)
@@ -131,6 +132,15 @@ function(gpbt_setupTargetProperties inTargetType inTargetName inTargetLocation)
   # Add the target to the global list of targets
   gpbt_appendProperty(GPBT_TARGETS "${cleanTargetName}")
 
+  # Set default IDE Folder based on the target type
+  if("${inTargetType}" STREQUAL "executable")
+    gpbt_setScopedProperty("_targetCustomFolder" "executables")
+  elseif("${inTargetType}" STREQUAL "module")
+    gpbt_setScopedProperty("_targetCustomFolder" "modules")
+  elseif("${inTargetType}" STREQUAL "plugin")
+    gpbt_setScopedProperty("_targetCustomFolder" "plugins")
+  endif()
+
   # Simple log about the target registration
   gpbt_log(INFO "Registered target: ${inTargetName} (Type: ${inTargetType})")
 endfunction()
@@ -170,17 +180,23 @@ endfunction()
 function(gpbt_endTarget)
   gpbt_checkInTargetDefinition("gpbt_endTarget")
 
+  # Apply strict warnings if enabled for the target.
+  # This will append the appropriate compiler flags to enable strict warnings based on the compiler being used.
   gpbt_getScopedProperty(_targetEnableStrictWarnings enableStrictWarnings)
   if(enableStrictWarnings)
     gpbt_appendStrictWarnings()
   endif()
+
+  # Check for target with empty sources, which is usually a mistake and should be avoided.
+  # This will log a warning to alert the user about the potential issue.
+  gpbt_checkForEmptySources()
 
   if(GPBT_DUMP_TARGETS_PROPERTIES)
     # Will only run during the CONFIGURATION phase
     gpbt_dumpTargetProperties()
   endif()
 
-
+  # Generate the actual CMake target based on the target type (executable, module, plugin).
   gpbt_getScopedProperty(_targetType targetType)
   if(targetType STREQUAL "executable")
     gpbt_defineCMakeExecutableTarget()
@@ -192,7 +208,7 @@ function(gpbt_endTarget)
     gpbt_log(FATAL "Unknown target type: ${targetType}")
   endif()
 
+  # Clean up the target properties by popping the scope and resetting the in-target-definition flag.
   gpbt_popScope()
-
   gpbt_setProperty(GPBT_IS_IN_TARGET_DEFINITION FALSE)
 endfunction()
