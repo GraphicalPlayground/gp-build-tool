@@ -4,7 +4,18 @@
 
 include(gp-build-tool/compilers/default)
 
-# @brief Appends build type flags to the current target based on the compiler, platform and build type.
+# @brief MSVC specialization of gpbt_applyBuildTypeFlags.
+#
+# Flag contract
+#   /W4 /WX /permissive-   – strict diagnostics (gated on enableStrictWarnings)
+#   /MP /EHsc /GS /Gy /GF  – universal code-gen baseline
+#   /Zc:*                  – conformance fixes required for C++23
+#   /MDd /MD               – dynamic CRT (swap to /MTd /MT for static linking)
+#   /GL + /Gw              – Shipping: WPO (requires /LTCG in the linker step)
+#
+# Linker pairing
+#   Debug/Development/Profile : nothing extra required
+#   Shipping                  : must add /LTCG /OPT:REF /OPT:ICF to the link step
 function(gpbt_applyBuildTypeFlags)
   gpbt_checkInTargetDefinition("gpbt_applyBuildTypeFlags")
   gpbt_runOnlyDuringPhase("CONFIGURATION")

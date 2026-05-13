@@ -7,7 +7,25 @@
 
 include(gp-build-tool/compilers/default)
 
-# @brief Appends build type flags to the current target based on the compiler, platform and build type.
+# @brief Clang specialization of gpbt_applyBuildTypeFlags.
+#
+# Covers both clang (Linux/macOS/Android) and clang-cl (MSVC driver on Windows).
+# clang-cl differences are gated on GP_COMPILER_CLANG_CL defined by the GPBT
+# toolchain detection layer.
+#
+# Minimum supported Clang: 17 (full C++23, <expected>, deducing-this)
+#
+# Flag contract
+#   -Wall -Wextra -Werror + curated set  – diagnostics
+#   -fvisibility=hidden                  – default hidden ELF/Mach-O visibility
+#   -ffunction-sections -fdata-sections  – per-symbol sections
+#   -flto=thin                           – Shipping: ThinLTO (parallel, ~same quality as full)
+#   -fwhole-program-vtables              – Shipping: devirtualize across TU boundaries
+#
+# Linker pairing
+#   All configs  : -fuse-ld=lld (required for ThinLTO and -fwhole-program-vtables)
+#   Shipping     : -Wl,--gc-sections -Wl,-O3 -Wl,--as-needed (ELF)
+#                  -Wl,-dead_strip (Mach-O / Apple)
 function(gpbt_applyBuildTypeFlags)
   gpbt_checkInTargetDefinition("gpbt_applyBuildTypeFlags")
   gpbt_runOnlyDuringPhase("CONFIGURATION")

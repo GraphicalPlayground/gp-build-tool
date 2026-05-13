@@ -4,7 +4,21 @@
 
 include(gp-build-tool/compilers/default)
 
-# @brief Appends build type flags to the current target based on the compiler, platform and build type.
+# @brief GCC specialization of gpbt_applyBuildTypeFlags.
+#
+# Minimum supported GCC: 13 (full C++23, <stacktrace>, std::expected)
+#
+# Flag contract
+#   -Wall -Wextra -Werror + curated set  – diagnostics
+#   -fvisibility=hidden                  – default hidden ELF visibility
+#   -ffunction-sections -fdata-sections  – per-symbol sections (pairs with --gc-sections)
+#   -flto=auto                           – Shipping: parallel full LTO
+#   -fno-semantic-interposition          – Shipping: elide PLT trampolines within a DSO
+#
+# Linker pairing
+#   Debug/Development/Profile : -Wl,--gc-sections (prune dead code)
+#   Shipping                  : -Wl,--gc-sections -Wl,-O3 -Wl,--as-needed + LTO plugin
+
 function(gpbt_applyBuildTypeFlags)
   gpbt_checkInTargetDefinition("gpbt_applyBuildTypeFlags")
   gpbt_runOnlyDuringPhase("CONFIGURATION")
