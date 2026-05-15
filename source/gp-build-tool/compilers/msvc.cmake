@@ -80,7 +80,6 @@ function(gpbt_applyCompileFlags)
     "/Zc:__cplusplus"     # Report correct __cplusplus value (else stuck at 199711L)
     "/Zc:preprocessor"    # Enable conformant C99/C++20 preprocessor (__VA_OPT__ etc.)
     "/Zc:inline"          # Strip unreferenced COMDAT symbols before LTO
-    "/Zc:templateHead"    # Fix template-head parsing for C++20/23 concepts
     "/Zc:lambda"          # Fix lambda capture scoping per C++23 spec
     "/Zc:externConstexpr" # extern constexpr has external linkage (ISO C++17+)
     "/Zc:throwingNew"     # operator new throws on failure (don't swallow OOM silently)
