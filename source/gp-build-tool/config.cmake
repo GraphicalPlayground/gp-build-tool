@@ -22,3 +22,6 @@ option(GPBT_TREAT_ERRORS_AS_FATAL "Set to true to treat errors as fatal" FALSE)
 option(GPBT_LOG_VERBOSE_ENABLED "Set to true to enable verbose logging" FALSE)
 option(GPBT_LOG_BANNER_ENABLED "Set to true to enable log banner" TRUE)
 option(GPBT_DUMP_TARGETS_PROPERTIES "Set to true to dump target properties after configuration" FALSE)
+
+# Building Option
+option(GPBT_IS_MONOLITHIC "Set to true to build all targets in a single monolithic library" FALSE)
