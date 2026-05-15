@@ -7,6 +7,7 @@ include_guard(GLOBAL)
 include(gp-build-tool/utilities/properties)
 include(gp-build-tool/utilities/logger)
 include(gp-build-tool/targets/utilities/sort)
+include(gp-build-tool/targets/utilities/graph)
 
 # @brief Initialize the build tool. Must be called before any target registrations.
 # @remarks Resets GPBT_TARGETS so that repeated gpStartBuildTool/gpEndBuildTool blocks within
@@ -47,6 +48,12 @@ function(gpbt_endBuildTool)
     gpbt_log(BULLET "${targetName}")
   endforeach()
 
+  # Export the dependency graph before instantiating targets so the graph reflects the
+  # registered topology regardless of whether any target fails to configure.
+  if(GPBT_EXPORT_DEPENDENCY_GRAPH)
+    gpbt_exportDependencyGraph("${GPBT_DEPENDENCY_GRAPH_FILE}")
+  endif()
+
   foreach(target IN LISTS sortedTargets)
     gpbt_pushScope("${target}")
     gpbt_getScopedProperty(_targetLocation targetLocation)
@@ -55,12 +62,11 @@ function(gpbt_endBuildTool)
   endforeach()
 
   # Write the CMake package config export file so downstream projects can use find_package().
-  # GPBT_INSTALL_EXPORT_NAME is set in config.cmake (default "GPTargets").
   install(
     EXPORT "${GPBT_INSTALL_EXPORT_NAME}"
     FILE "${GPBT_INSTALL_EXPORT_NAME}.cmake"
     NAMESPACE gp::
-    DESTINATION lib/cmake/${GPBT_INSTALL_EXPORT_NAME}
+    DESTINATION "lib/cmake/${GPBT_INSTALL_EXPORT_NAME}"
   )
   gpbt_log(VERBOSE "Wrote install export '${GPBT_INSTALL_EXPORT_NAME}' to lib/cmake/${GPBT_INSTALL_EXPORT_NAME}/")
 

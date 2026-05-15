@@ -16,6 +16,8 @@ if(GPBT_LOG_BANNER_ENABLED AND NOT hasLoggedBanner)
 endif()
 
 if(GPBT_TESTS_ENABLED)
+  # Load the full API so target API tests can simulate the build tool lifecycle.
+  include(gp-build-tool/api)
   include(gp-build-tool/tests/all)
   return()
 endif()

@@ -9,9 +9,31 @@ include(gp-build-tool/utilities/strings)
 include(gp-build-tool/utilities/logger)
 include(gp-build-tool/targets/utilities/target-props)
 
-# @brief Appends build type flags to the current target based on the compiler, platform and build type.
+# @brief Stub compile-flag function overridden by each compiler specialization.
+#        Compiler files (gcc.cmake, clang.cmake, msvc.cmake) override this function
+#        with compiler-specific compile flags. They also set _targetLTOFlag if LTO
+#        is enabled so the linker file can add the matching link-time flag.
+function(gpbt_applyCompileFlags)
+  gpbt_checkInTargetDefinition("gpbt_applyCompileFlags")
+  gpbt_runOnlyDuringPhase("CONFIGURATION")
+  # Default: no-op. Overridden by compiler-specific files.
+endfunction()
+
+# @brief Stub linker-flag function overridden by each linker specialization.
+#        Linker files (ld.cmake, lld.cmake, ld64.cmake, msvc-link.cmake) override
+#        this function with linker-specific flags. They read _targetLTOFlag to
+#        append the matching LTO pass-through flag at link time.
+function(gpbt_applyLinkerFlags)
+  gpbt_checkInTargetDefinition("gpbt_applyLinkerFlags")
+  gpbt_runOnlyDuringPhase("CONFIGURATION")
+  # Default: no-op. Overridden by linker-specific files.
+endfunction()
+
+# @brief Orchestrator called from gpbt_endTarget. Invokes both the compiler and linker
+#        flag functions so each target receives consistent compile+link flags.
 function(gpbt_applyBuildTypeFlags)
   gpbt_checkInTargetDefinition("gpbt_applyBuildTypeFlags")
   gpbt_runOnlyDuringPhase("CONFIGURATION")
-  # Default implementation does nothing.
+  gpbt_applyCompileFlags()
+  gpbt_applyLinkerFlags()
 endfunction()

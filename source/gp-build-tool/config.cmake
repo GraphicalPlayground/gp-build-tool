@@ -34,3 +34,8 @@ option(GPBT_CONFIGURE_DEPENDS "Rerun CMake configure when globbed source files c
 # Install export set name. All targets are added to this CMake export set.
 # Change this to match your project's find_package() name.
 set(GPBT_INSTALL_EXPORT_NAME "GPTargets" CACHE STRING "Name of the CMake install export set")
+
+# Dependency graph export (Graphviz DOT format).
+# Render with: dot -Tsvg <file> -o <file>.svg
+option(GPBT_EXPORT_DEPENDENCY_GRAPH "Write a Graphviz DOT file of the target dependency graph after configuration" FALSE)
+set(GPBT_DEPENDENCY_GRAPH_FILE "${CMAKE_BINARY_DIR}/gpbt_dependency_graph.dot" CACHE FILEPATH "Output path for the dependency graph DOT file")

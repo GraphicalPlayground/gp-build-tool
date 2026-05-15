@@ -27,6 +27,40 @@ else()
   gpbt_log(WARNING "Unsupported compiler: ${CMAKE_CXX_COMPILER_ID}. Default compiler settings will be used, which may lead to suboptimal builds or compatibility issues.")
 endif()
 
+# Linker selection.
+# The active linker is detected from the compiler + platform combination and may be
+# overridden with -DGPBT_LINKER=<name> (ld | lld | ld64 | msvc-link).
+# Valid values: "ld", "lld", "ld64", "msvc-link", "default".
+if(NOT GPBT_LINKER)
+  if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    set(GPBT_LINKER "msvc-link")
+  elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND APPLE)
+    set(GPBT_LINKER "ld64")
+  elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    # clang.cmake forces -fuse-ld=lld on non-Darwin, so lld is the active linker.
+    set(GPBT_LINKER "lld")
+  elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    set(GPBT_LINKER "ld")
+  else()
+    set(GPBT_LINKER "default")
+  endif()
+endif()
+
+include(gp-build-tool/linkers/default)
+if(GPBT_LINKER STREQUAL "msvc-link")
+  include(gp-build-tool/linkers/msvc-link)
+elseif(GPBT_LINKER STREQUAL "ld64")
+  include(gp-build-tool/linkers/ld64)
+elseif(GPBT_LINKER STREQUAL "lld")
+  include(gp-build-tool/linkers/lld)
+elseif(GPBT_LINKER STREQUAL "ld")
+  include(gp-build-tool/linkers/ld)
+else()
+  gpbt_log(INFO "Linker '${GPBT_LINKER}' has no specific flag set. Using default (no additional linker flags).")
+endif()
+
+gpbt_log(INFO "Selected compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} | linker: ${GPBT_LINKER}")
+
 include(gp-build-tool/platforms/default)
 # Platform detection: more-specific checks must come before generic catch-alls.
 # Android sets CMAKE_SYSTEM_NAME = "Android" but also sets UNIX, so it must be tested first.
@@ -129,6 +163,10 @@ function(gpbt_setupTargetProperties inTargetType inTargetName inTargetLocation i
     _targetPublicLinkOptions ""
     _targetInternalLinkOptions ""
     _targetPrivateLinkOptions ""
+
+    # LTO coupling: compiler file sets this property; linker file reads it and
+    # appends the same flag to link options so LTO works at both compile and link time.
+    _targetLTOFlag ""
 
     _targetIsHeaderOnly FALSE
     _targetEnableTests FALSE

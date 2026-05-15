@@ -25,7 +25,7 @@ include(gp-build-tool/compilers/default)
 #   All configs  : -fuse-ld=lld (required for ThinLTO and -fwhole-program-vtables)
 #   Shipping     : -Wl,--gc-sections -Wl,-O3 -Wl,--as-needed (ELF)
 #                  -Wl,-dead_strip (Mach-O / Apple)
-function(gpbt_applyBuildTypeFlags)
+function(gpbt_applyCompileFlags)
   gpbt_checkInTargetDefinition("gpbt_applyBuildTypeFlags")
   gpbt_runOnlyDuringPhase("CONFIGURATION")
 
@@ -144,17 +144,14 @@ function(gpbt_applyBuildTypeFlags)
     "$<$<CONFIG:Shipping>:GPBT_SHIPPING=1>"
   )
 
+  # Linker selection: force lld on non-Darwin targets (required for ThinLTO and
+  # -fwhole-program-vtables). This is a compiler-driver flag so it lives here,
+  # not in the linker file.
   gpbt_appendScopedProperty(_targetPrivateLinkOptions
-    # Use lld on everything EXCEPT macOS (Darwin uses its own ld64/ld-prime linker).
     "$<$<NOT:$<PLATFORM_ID:Darwin>>:-fuse-ld=lld>"
-
-    # ELF (Linux / Android) Linker Flags
-    "$<$<AND:$<NOT:$<PLATFORM_ID:Darwin>>,$<CONFIG:Shipping>>:-Wl,--gc-sections>"
-    "$<$<AND:$<NOT:$<PLATFORM_ID:Darwin>>,$<CONFIG:Shipping>>:-Wl,-O3>"
-    "$<$<AND:$<NOT:$<PLATFORM_ID:Darwin>>,$<CONFIG:Shipping>>:-Wl,--as-needed>"
-
-    # Mach-O (macOS / iOS) Linker Flags
-    # -dead_strip is Apple's equivalent to --gc-sections
-    "$<$<AND:$<PLATFORM_ID:Darwin>,$<CONFIG:Shipping>>:-Wl,-dead_strip>"
   )
+
+  # Store the ThinLTO flag so the active linker file can append it to link options.
+  # lld.cmake and ld64.cmake read _targetLTOFlag to complete the LTO setup.
+  gpbt_setScopedProperty(_targetLTOFlag "$<$<CONFIG:Shipping>:-flto=thin>")
 endfunction()

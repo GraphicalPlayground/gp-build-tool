@@ -20,7 +20,7 @@ include(gp-build-tool/compilers/default)
 # Linker pairing
 #   Debug/Development/Profile : -Wl,--gc-sections (prune dead code)
 #   Shipping                  : -Wl,--gc-sections -Wl,-O3 -Wl,--as-needed + LTO plugin
-function(gpbt_applyBuildTypeFlags)
+function(gpbt_applyCompileFlags)
   gpbt_checkInTargetDefinition("gpbt_applyBuildTypeFlags")
   gpbt_runOnlyDuringPhase("CONFIGURATION")
 
@@ -122,14 +122,7 @@ function(gpbt_applyBuildTypeFlags)
     "$<$<CONFIG:Shipping>:GPBT_SHIPPING=1>"
   )
 
-  gpbt_appendScopedProperty(_targetPrivateLinkOptions
-    # All configurations: prune dead code sections (pairs with -ffunction/data-sections)
-    "-Wl,--gc-sections"
-
-    # Shipping: link-time optimization level and symbol pruning
-    "$<$<CONFIG:Shipping>:-Wl,-O3>"
-    "$<$<CONFIG:Shipping>:-Wl,--as-needed>"
-    # GCC requires -flto at link time as well when using LTO at compile time.
-    "$<$<CONFIG:Shipping>:-flto=auto>"
-  )
+  # Store the LTO flag so the linker file (ld.cmake) can append it to link options.
+  # GCC full LTO requires -flto=auto at both compile and link time.
+  gpbt_setScopedProperty(_targetLTOFlag "$<$<CONFIG:Shipping>:-flto=auto>")
 endfunction()

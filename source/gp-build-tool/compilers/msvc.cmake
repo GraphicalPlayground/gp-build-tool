@@ -20,7 +20,7 @@ include(gp-build-tool/compilers/default)
 # Linker pairing
 #   Debug/Development/Profile : nothing extra required
 #   Shipping                  : /LTCG /OPT:REF /OPT:ICF
-function(gpbt_applyBuildTypeFlags)
+function(gpbt_applyCompileFlags)
   gpbt_checkInTargetDefinition("gpbt_applyBuildTypeFlags")
   gpbt_runOnlyDuringPhase("CONFIGURATION")
 
@@ -136,10 +136,9 @@ function(gpbt_applyBuildTypeFlags)
     "$<$<CONFIG:Shipping>:GPBT_SHIPPING=1>"
   )
 
-  # Linker: Shipping requires /LTCG to pair with /GL at compile time.
-  gpbt_appendScopedProperty(_targetPrivateLinkOptions
-    "$<$<CONFIG:Shipping>:/LTCG>"
-    "$<$<CONFIG:Shipping>:/OPT:REF>"
-    "$<$<CONFIG:Shipping>:/OPT:ICF>"
-  )
+  # MSVC WPO coupling: /GL (set above in compile options) requires /LTCG at link time.
+  # msvc-link.cmake handles the /LTCG /OPT:REF /OPT:ICF flags.
+  # _targetLTOFlag is not used for MSVC (the mechanism is /GL+/LTCG, not -flto=...) but
+  # we set it to a non-empty value so the duplicate-flag check doesn't warn.
+  gpbt_setScopedProperty(_targetLTOFlag "")
 endfunction()

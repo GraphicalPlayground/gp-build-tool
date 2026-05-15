@@ -251,3 +251,29 @@ function(gpbt_assertNotEqual value expected description)
     gpbt_assertSuccess("${description}")
   endif()
 endfunction()
+
+# ---------------------------------------------------------------------------
+# Build Tool Lifecycle Helpers for Target API Tests
+# ---------------------------------------------------------------------------
+
+# @brief Reset all build tool state so a new gpbt_startBuildTool can be called.
+#        Use this at the end of each target API test section to ensure isolation.
+function(gpbt_testResetBuildTool)
+  gpbt_setProperty(GPBT_HAS_BUILD_TOOL_STARTED FALSE)
+  gpbt_setProperty(GPBT_TARGETS "")
+  gpbt_setProperty(GPBT_CURRENT_PHASE "")
+  gpbt_setProperty(GPBT_IS_IN_TARGET_DEFINITION FALSE)
+  gpbt_setProperty("__GPBT_SCOPE_STACK__" "")
+endfunction()
+
+# @brief Read a scoped property from a specific target by its clean name without
+#        disturbing the current scope stack. Used in test assertions only.
+# @param[in] targetCleanName Clean name of the target (lowercased, underscores).
+# @param[in] key Property key (e.g., "_targetType").
+# @param[out] outVar Variable to receive the value.
+function(gpbt_testGetTargetProperty targetCleanName key outVar)
+  gpbt_pushScope("${targetCleanName}")
+  gpbt_getScopedProperty("${key}" _val)
+  gpbt_popScope()
+  set(${outVar} "${_val}" PARENT_SCOPE)
+endfunction()

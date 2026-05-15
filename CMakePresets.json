@@ -1,0 +1,134 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": { "major": 3, "minor": 28, "patch": 0 },
+
+  "configurePresets": [
+    {
+      "name": "__base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "GPBT_LOG_BANNER_ENABLED": "TRUE",
+        "GPBT_CONFIGURE_DEPENDS": "TRUE"
+      }
+    },
+
+    {
+      "name": "__base-ci",
+      "hidden": true,
+      "inherits": "__base",
+      "cacheVariables": {
+        "GPBT_RUNNING_IN_CI": "TRUE",
+        "GPBT_LOG_VERBOSE_ENABLED": "TRUE",
+        "GPBT_DUMP_TARGETS_PROPERTIES": "TRUE",
+        "GPBT_CONFIGURE_DEPENDS": "FALSE"
+      }
+    },
+
+    {
+      "name": "debug",
+      "displayName": "Debug",
+      "description": "Full debug info, no optimization, runtime safety checks enabled.",
+      "inherits": "__base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+
+    {
+      "name": "development",
+      "displayName": "Development",
+      "description": "Optimized with debug symbols - the everyday developer configuration.",
+      "inherits": "__base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Development"
+      }
+    },
+
+    {
+      "name": "profile",
+      "displayName": "Profile",
+      "description": "Maximum optimization with frame pointers retained for profilers.",
+      "inherits": "__base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Profile"
+      }
+    },
+
+    {
+      "name": "shipping",
+      "displayName": "Shipping",
+      "description": "Maximum optimization, LTO, no debug symbols.",
+      "inherits": "__base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Shipping"
+      }
+    },
+
+    {
+      "name": "tests",
+      "displayName": "Build Tool Tests",
+      "description": "Run the GPBT CMake-level test suite (property system, string utilities, target API).",
+      "inherits": "__base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "GPBT_TESTS_ENABLED": "TRUE",
+        "GPBT_LOG_BANNER_ENABLED": "FALSE"
+      }
+    },
+
+    {
+      "name": "debug-verbose",
+      "displayName": "Debug (verbose)",
+      "description": "Debug configuration with full GPBT log output and target property dump.",
+      "inherits": "debug",
+      "cacheVariables": {
+        "GPBT_LOG_VERBOSE_ENABLED": "TRUE",
+        "GPBT_DUMP_TARGETS_PROPERTIES": "TRUE",
+        "GPBT_EXPORT_DEPENDENCY_GRAPH": "TRUE"
+      }
+    },
+
+    {
+      "name": "ci-debug",
+      "displayName": "CI - Debug",
+      "description": "Debug build for CI environments (verbose, no configure-depends).",
+      "inherits": ["__base-ci", "debug"]
+    },
+
+    {
+      "name": "ci-development",
+      "displayName": "CI - Development",
+      "description": "Development build for CI environments.",
+      "inherits": ["__base-ci", "development"]
+    },
+
+    {
+      "name": "ci-shipping",
+      "displayName": "CI - Shipping",
+      "description": "Shipping build for CI environments.",
+      "inherits": ["__base-ci", "shipping"]
+    },
+
+    {
+      "name": "ci-tests",
+      "displayName": "CI - Tests",
+      "description": "GPBT test suite run for CI environments.",
+      "inherits": "__base-ci",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "GPBT_TESTS_ENABLED": "TRUE",
+        "GPBT_LOG_BANNER_ENABLED": "FALSE"
+      }
+    }
+  ],
+
+  "buildPresets": [
+    { "name": "debug",       "displayName": "Debug",       "configurePreset": "debug"       },
+    { "name": "development", "displayName": "Development", "configurePreset": "development" },
+    { "name": "profile",     "displayName": "Profile",     "configurePreset": "profile"     },
+    { "name": "shipping",    "displayName": "Shipping",    "configurePreset": "shipping"    },
+    { "name": "tests",       "displayName": "Tests",       "configurePreset": "tests"       }
+  ]
+}
