@@ -7,6 +7,9 @@ include_guard(GLOBAL)
 include(gp-build-tool/utilities/logger)
 include(gp-build-tool/config)
 
+# Enable Position Independent Code (PIC) by default for all targets.
+set(CMAKE_POSITION_INDEPENDENT_CODE ON CACHE BOOL "Whether to build with Position Independent Code (PIC)." FORCE)
+
 # Check if the generator is Multi-Config (Visual Studio / Xcode) or Single-Config (Ninja / Make)
 get_property(IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(IS_MULTI_CONFIG)
