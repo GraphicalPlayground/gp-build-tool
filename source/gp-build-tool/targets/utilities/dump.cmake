@@ -67,6 +67,7 @@ function(gpbt_dumpTargetProperties)
   gpbt_log(DEBUG "EnableISPC: ${targetEnableISPC}")
   gpbt_log(DEBUG "EnableStrictWarnings: ${targetEnableStrictWarnings}")
   gpbt_log(DEBUG "EnableUnityBuild: ${targetEnableUnityBuild}")
+  gpbt_log(DEBUG "IsBuildShared: ${targetIsBuildShared}")
 
   gpbt_logNewLine()
   gpbt_logSeparator()
