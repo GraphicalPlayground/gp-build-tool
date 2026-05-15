@@ -134,4 +134,15 @@ function(gpbt_applyBuildTypeFlags)
     "$<$<CONFIG:Shipping>:-DNDEBUG>"
     "$<$<CONFIG:Shipping>:-DGPBT_SHIPPING=1>"
   )
+
+  # Add Linker Options
+  gpbt_appendScopedProperty(_targetPrivateLinkOptions
+    # All configs
+    "-fuse-ld=lld"
+
+    # Shipping (Assuming ELF/Linux for this example, adjust for Mach-O if needed)
+    "$<$<CONFIG:Shipping>:-Wl,--gc-sections>"
+    "$<$<CONFIG:Shipping>:-Wl,-O3>"
+    "$<$<CONFIG:Shipping>:-Wl,--as-needed>"
+  )
 endfunction()

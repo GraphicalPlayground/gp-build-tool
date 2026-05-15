@@ -31,16 +31,25 @@ endif()
 set(CMAKE_C_FLAGS_DEVELOPMENT "${CMAKE_C_FLAGS_RELWITHDEBINFO}" CACHE STRING "Flags for Development" FORCE)
 set(CMAKE_CXX_FLAGS_DEVELOPMENT "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" CACHE STRING "Flags for Development" FORCE)
 set(CMAKE_EXE_LINKER_FLAGS_DEVELOPMENT "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO}" CACHE STRING "Linker flags for Development" FORCE)
+set(CMAKE_SHARED_LINKER_FLAGS_DEVELOPMENT "${CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO}" CACHE STRING "Shared Linker flags for Development" FORCE)
+set(CMAKE_STATIC_LINKER_FLAGS_DEVELOPMENT "${CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO}" CACHE STRING "Static Linker flags for Development" FORCE)
+set(CMAKE_MODULE_LINKER_FLAGS_DEVELOPMENT "${CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO}" CACHE STRING "Module Linker flags for Development" FORCE)
 
 # PROFILE: Map it to behave like Release natively
 set(CMAKE_C_FLAGS_PROFILE "${CMAKE_C_FLAGS_RELEASE}" CACHE STRING "Flags for Profile" FORCE)
 set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_RELEASE}" CACHE STRING "Flags for Profile" FORCE)
 set(CMAKE_EXE_LINKER_FLAGS_PROFILE "${CMAKE_EXE_LINKER_FLAGS_RELEASE}" CACHE STRING "Linker flags for Profile" FORCE)
+set(CMAKE_SHARED_LINKER_FLAGS_PROFILE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE}" CACHE STRING "Shared Linker flags for Profile" FORCE)
+set(CMAKE_STATIC_LINKER_FLAGS_PROFILE "${CMAKE_STATIC_LINKER_FLAGS_RELEASE}" CACHE STRING "Static Linker flags for Profile" FORCE)
+set(CMAKE_MODULE_LINKER_FLAGS_PROFILE "${CMAKE_MODULE_LINKER_FLAGS_RELEASE}" CACHE STRING "Module Linker flags for Profile" FORCE)
 
 # SHIPPING: Map it to behave like Release natively
 set(CMAKE_C_FLAGS_SHIPPING "${CMAKE_C_FLAGS_RELEASE}" CACHE STRING "Flags for Shipping" FORCE)
 set(CMAKE_CXX_FLAGS_SHIPPING "${CMAKE_CXX_FLAGS_RELEASE}" CACHE STRING "Flags for Shipping" FORCE)
 set(CMAKE_EXE_LINKER_FLAGS_SHIPPING "${CMAKE_EXE_LINKER_FLAGS_RELEASE}" CACHE STRING "Linker flags for Shipping" FORCE)
+set(CMAKE_SHARED_LINKER_FLAGS_SHIPPING "${CMAKE_SHARED_LINKER_FLAGS_RELEASE}" CACHE STRING "Shared Linker flags for Shipping" FORCE)
+set(CMAKE_STATIC_LINKER_FLAGS_SHIPPING "${CMAKE_STATIC_LINKER_FLAGS_RELEASE}" CACHE STRING "Static Linker flags for Shipping" FORCE)
+set(CMAKE_MODULE_LINKER_FLAGS_SHIPPING "${CMAKE_MODULE_LINKER_FLAGS_RELEASE}" CACHE STRING "Module Linker flags for Shipping" FORCE)
 
 # Set the default CXX standard to C++23 if not specified by the user.
 if(NOT CMAKE_CXX_STANDARD)
@@ -59,8 +68,8 @@ endif()
 # If the build is not a monolithic build, set the default library type to OBJECT. Otherwise, set it to STATIC.
 if(NOT GPBT_IS_MONOLITHIC)
   set(BUILD_SHARED_LIBS ON CACHE BOOL "Whether to build shared libraries." FORCE)
-  gpbt_log(LOG "GPBT_IS_MONOLITHIC is OFF. Defaulting to building shared libraries.")
+  gpbt_log(INFO "GPBT_IS_MONOLITHIC is OFF. Defaulting to building shared libraries.")
 else()
   set(BUILD_SHARED_LIBS OFF CACHE BOOL "Whether to build shared libraries." FORCE)
-  gpbt_log(LOG "GPBT_IS_MONOLITHIC is ON. Defaulting to building static libraries.")
+  gpbt_log(INFO "GPBT_IS_MONOLITHIC is ON. Defaulting to building static libraries.")
 endif()

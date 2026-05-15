@@ -125,4 +125,12 @@ function(gpbt_applyBuildTypeFlags)
     "$<$<CONFIG:Shipping>:/DNDEBUG>"
     "$<$<CONFIG:Shipping>:/DGPBT_SHIPPING=1>"
   )
+
+  # Add Linker Options
+  gpbt_appendScopedProperty(_targetPrivateLinkOptions
+    # Shipping Linker Pairing for Whole Program Optimization (/GL)
+    "$<$<CONFIG:Shipping>:/LTCG>"
+    "$<$<CONFIG:Shipping>:/OPT:REF>"
+    "$<$<CONFIG:Shipping>:/OPT:ICF>"
+  )
 endfunction()

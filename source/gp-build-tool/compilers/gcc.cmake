@@ -18,7 +18,6 @@ include(gp-build-tool/compilers/default)
 # Linker pairing
 #   Debug/Development/Profile : -Wl,--gc-sections (prune dead code)
 #   Shipping                  : -Wl,--gc-sections -Wl,-O3 -Wl,--as-needed + LTO plugin
-
 function(gpbt_applyBuildTypeFlags)
   gpbt_checkInTargetDefinition("gpbt_applyBuildTypeFlags")
   gpbt_runOnlyDuringPhase("CONFIGURATION")
@@ -106,5 +105,16 @@ function(gpbt_applyBuildTypeFlags)
     "$<$<CONFIG:Shipping>:-fno-asynchronous-unwind-tables>" # Strip async-unwind metadata
     "$<$<CONFIG:Shipping>:-DNDEBUG>"
     "$<$<CONFIG:Shipping>:-DGPBT_SHIPPING=1>"
+  )
+
+  # Add Linker Options
+  gpbt_appendScopedProperty(_targetPrivateLinkOptions
+    # All configurations
+    "-Wl,--gc-sections"            # Prune dead code (pairs with -ffunction-sections / -fdata-sections)
+
+    # Shipping
+    "$<$<CONFIG:Shipping>:-Wl,-O3>"           # Link-time optimization level
+    "$<$<CONFIG:Shipping>:-Wl,--as-needed>"   # Only link libraries that actually satisfy unresolved references
+    "$<$<CONFIG:Shipping>:-flto=auto>"        # GCC requires the LTO flag at link-time as well
   )
 endfunction()

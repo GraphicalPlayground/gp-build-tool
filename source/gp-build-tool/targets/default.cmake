@@ -111,6 +111,10 @@ function(gpbt_setupTargetProperties inTargetType inTargetName inTargetLocation)
     _targetInternalCompileOptions ""
     _targetPrivateCompileOptions ""
 
+    _targetPublicLinkOptions ""
+    _targetInternalLinkOptions ""
+    _targetPrivateLinkOptions ""
+
     _targetIsHeaderOnly FALSE
     _targetEnableTests FALSE
     _targetEnableBenchmarks FALSE

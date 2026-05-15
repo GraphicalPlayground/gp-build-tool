@@ -136,6 +136,27 @@ endmacro()
 macro(gpbt_applyLinkOptions)
   gpbt_checkInTargetDefinition("gpbt_applyLinkOptions")
   gpbt_runOnlyDuringPhase("CONFIGURATION")
+
+  # Apply link options based on their public visibility.
+  list(LENGTH targetPublicLinkOptions numPublicOpts)
+  if(numPublicOpts GREATER 0)
+    target_link_options(${targetExportName} PUBLIC ${targetPublicLinkOptions})
+    gpbt_log(VERBOSE "Added ${numPublicOpts} public link options to target ${targetName}")
+  endif()
+
+  # Apply link options based on their internal visibility.
+  list(LENGTH targetInternalLinkOptions numInternalOpts)
+  if(numInternalOpts GREATER 0)
+    target_link_options(${targetExportName} PRIVATE ${targetInternalLinkOptions})
+    gpbt_log(VERBOSE "Added ${numInternalOpts} internal link options to target ${targetName}")
+  endif()
+
+  # Apply link options based on their private visibility.
+  list(LENGTH targetPrivateLinkOptions numPrivateOpts)
+  if(numPrivateOpts GREATER 0)
+    target_link_options(${targetExportName} PRIVATE ${targetPrivateLinkOptions})
+    gpbt_log(VERBOSE "Added ${numPrivateOpts} private link options to target ${targetName}")
+  endif()
 endmacro()
 
 macro(gpbt_applyDependencies)
