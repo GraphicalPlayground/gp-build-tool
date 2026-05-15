@@ -16,4 +16,5 @@ function(gpbt_defineCMakePluginTarget)
 
   # Log the configuration of the target for better visibility in the build output.
   gpbt_log(INFO "Configuration of cmake target for: ${targetName} (Type: ${targetType})")
+  gpbt_log(WARNING "The 'plugin' target type is currently only a placeholder and does not have specific properties or behaviors defined. It will be treated as a regular shared library target for now.")
 endfunction()
