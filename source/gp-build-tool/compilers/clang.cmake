@@ -137,12 +137,18 @@ function(gpbt_applyBuildTypeFlags)
 
   # Add Linker Options
   gpbt_appendScopedProperty(_targetPrivateLinkOptions
-    # All configs
-    "-fuse-ld=lld"
+    # Linker Selection
+    # Use lld on everything EXCEPT macOS (Darwin)
+    # Apple uses its own ld64/ld-prime linker.
+    "$<$<NOT:$<PLATFORM_ID:Darwin>>:-fuse-ld=lld>"
 
-    # Shipping (Assuming ELF/Linux for this example, adjust for Mach-O if needed)
-    "$<$<CONFIG:Shipping>:-Wl,--gc-sections>"
-    "$<$<CONFIG:Shipping>:-Wl,-O3>"
-    "$<$<CONFIG:Shipping>:-Wl,--as-needed>"
+    # ELF (Linux / Android) Linker Flags
+    "$<$<AND:$<NOT:$<PLATFORM_ID:Darwin>>,$<CONFIG:Shipping>>:-Wl,--gc-sections>"
+    "$<$<AND:$<NOT:$<PLATFORM_ID:Darwin>>,$<CONFIG:Shipping>>:-Wl,-O3>"
+    "$<$<AND:$<NOT:$<PLATFORM_ID:Darwin>>,$<CONFIG:Shipping>>:-Wl,--as-needed>"
+
+    # Mach-O (macOS / iOS) Linker Flags
+    # -dead_strip is Apple's equivalent to --gc-sections
+    "$<$<AND:$<PLATFORM_ID:Darwin>,$<CONFIG:Shipping>>:-Wl,-dead_strip>"
   )
 endfunction()
