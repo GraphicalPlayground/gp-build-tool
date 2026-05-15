@@ -141,6 +141,14 @@ function(gpbt_setupTargetProperties inTargetType inTargetName inTargetLocation)
     gpbt_setScopedProperty("_targetCustomFolder" "plugins")
   endif()
 
+  # Set basic compile definitions
+  gpbt_appendScopedProperty(_targetPrivateCompileDefinitions
+    "$<$<CONFIG:Debug>:GP_BUILD_DEBUG=1>"
+    "$<$<CONFIG:Development>:GP_BUILD_DEVELOPMENT=1>"
+    "$<$<CONFIG:Profile>:GP_BUILD_PROFILE=1>"
+    "$<$<CONFIG:Shipping>:GP_BUILD_SHIPPING=1>"
+  )
+
   # Simple log about the target registration
   gpbt_log(INFO "Registered target: ${inTargetName} (Type: ${inTargetType})")
 endfunction()
