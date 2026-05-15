@@ -17,6 +17,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Build GPBT examples
+      - name: Configure GPBT examples
         run: |
           cmake -S . -B build -DGPBT_IS_RUNNED_IN_CI=TRUE -DGPBT_LOG_VERBOSE_ENABLED=TRUE -DGPBT_DUMP_TARGETS_PROPERTIES=TRUE
+
+      - name: Build GPBT examples
+        run: |
+          cmake --build build
