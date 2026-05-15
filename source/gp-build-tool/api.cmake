@@ -15,10 +15,33 @@ include(gp-build-tool/targets/api/metadata)
 include(gp-build-tool/targets/api/options)
 include(gp-build-tool/targets/api/sources)
 
-# Build Tool Lifecycle
+# @brief Apply the default policies and configurations for Graphical Playground targets.
+macro(gpApplyGraphicalPlaygroundDefaultPolicy)
+  # Enforce C++23 globally
+  set(CMAKE_CXX_STANDARD 23)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+  set(CMAKE_CXX_EXTENSIONS OFF) # Forces standard C++ (no GCC extensions)
 
-# @brief Initialize the build tool. Call once before any target definitions.
-# @remarks Must be paired with gpEndBuildTool().
+  # Change the default output directories for all targets to be under the "binaries" folder in the source directory.
+  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/binaries/lib)
+  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/binaries/lib)
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/binaries/bin)
+
+  # Put Debug/Release in subfolders (Bin/Debug, Bin/Release)
+  foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_SOURCE_DIR}/binaries/bin/${OUTPUTCONFIG})
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_SOURCE_DIR}/binaries/lib/${OUTPUTCONFIG})
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_SOURCE_DIR}/binaries/lib/${OUTPUTCONFIG})
+  endforeach()
+
+  # Enable Position Independent Code (PIC) for static libraries to allow linking into shared libraries on all platforms
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+endmacro()
+
+# @brief Start the build tool definition. This function should be called at the beginning of the CMakeLists.txt file to
+# initialize the build tool and set up any necessary properties or configurations.
+# @remarks This function must be paired with a corresponding gpEndBuildTool() call to properly close the build tool definition.
 macro(gpStartBuildTool)
   gpbt_startBuildTool()
 endmacro()
