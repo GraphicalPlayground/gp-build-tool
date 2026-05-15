@@ -2,6 +2,8 @@
 # For more information, see https://graphical-playground/legal
 # mailto:support AT graphical-playground DOT com
 
+include_guard(GLOBAL)
+
 include(gp-build-tool/utilities/logger)
 
 # @brief Automatically scan the specified directories for CMakeLists.txt files and register them as targets.
@@ -12,6 +14,13 @@ function(gpbt_autoScanTargets)
   gpbt_getProperty(GPBT_HAS_BUILD_TOOL_STARTED hasBuildToolStarted)
   if(NOT hasBuildToolStarted)
     gpbt_log(FATAL "gpbt_autoScanTargets called without a matching gpbt_startBuildTool")
+  endif()
+
+  # Auto-scan must run during REGISTRATION so that targets are discovered before gpbt_endBuildTool
+  # transitions to CONFIGURATION and begins configuring them.
+  gpbt_getProperty(GPBT_CURRENT_PHASE currentPhase)
+  if(NOT currentPhase STREQUAL "REGISTRATION")
+    gpbt_log(FATAL "gpbt_autoScanTargets must be called during the REGISTRATION phase (inside gpStartBuildTool/gpEndBuildTool).")
   endif()
 
   set(directoriesToScan "${ARGN}")

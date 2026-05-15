@@ -2,10 +2,12 @@
 # For more information, see https://graphical-playground/legal
 # mailto:support AT graphical-playground DOT com
 
+include_guard(GLOBAL)
+
 include(gp-build-tool/utilities/properties)
 include(gp-build-tool/utilities/strings)
 include(gp-build-tool/utilities/logger)
-include(gp-build-tool/targets/utilities/shared)
+include(gp-build-tool/targets/utilities/target-props)
 
 function(gpbt_defineCMakeExecutableTarget)
   gpbt_checkInTargetDefinition("gpbt_defineCMakeExecutableTarget")
@@ -19,7 +21,7 @@ function(gpbt_defineCMakeExecutableTarget)
 
   # Gather all the headers files
   set(targetHeaders "")
-  foreach(includeDir IN_LIST ${targetPublicIncludeDirectories} ${targetInternalIncludeDirectories} ${targetPrivateIncludeDirectories})
+  foreach(includeDir IN LISTS targetPublicIncludeDirectories targetInternalIncludeDirectories targetPrivateIncludeDirectories)
     file(GLOB_RECURSE includeFiles "${includeDir}/*.h" "${includeDir}/*.hpp" "${includeDir}/*.hh" "${includeDir}/*.hxx")
     list(APPEND targetHeaders ${includeFiles})
   endforeach()

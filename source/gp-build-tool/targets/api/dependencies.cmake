@@ -2,7 +2,9 @@
 # For more information, see https://graphical-playground/legal
 # mailto:support AT graphical-playground DOT com
 
-include(gp-build-tool/targets/utilities/shared)
+include_guard(GLOBAL)
+
+include(gp-build-tool/targets/utilities/target-props)
 include(gp-build-tool/utilities/strings)
 include(gp-build-tool/utilities/logger)
 

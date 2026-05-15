@@ -2,7 +2,9 @@
 # For more information, see https://graphical-playground/legal
 # mailto:support AT graphical-playground DOT com
 
-include(gp-build-tool/targets/utilities/shared)
+include_guard(GLOBAL)
+
+include(gp-build-tool/targets/utilities/target-props)
 
 # @brief Utility functions for dumping target properties to the log for debugging purposes.
 # @param[in] groupName Name of the property group to log, e.g. "Sources", "PublicIncludeDirectories", etc.

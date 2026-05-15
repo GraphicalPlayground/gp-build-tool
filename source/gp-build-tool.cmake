@@ -2,6 +2,8 @@
 # For more information, see https://graphical-playground/legal
 # mailto:support AT graphical-playground DOT com
 
+include_guard(GLOBAL)
+
 include(gp-build-tool/config)
 include(gp-build-tool/utilities/logger)
 

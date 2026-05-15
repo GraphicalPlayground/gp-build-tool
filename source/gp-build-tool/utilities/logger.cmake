@@ -2,6 +2,8 @@
 # For more information, see https://graphical-playground/legal
 # mailto:support AT graphical-playground DOT com
 
+include_guard(GLOBAL)
+
 include(gp-build-tool/config)
 include(gp-build-tool/utilities/properties)
 include(gp-build-tool/utilities/colors)
@@ -74,7 +76,9 @@ function(_gpbt_padNumber outVar num width)
 endfunction()
 
 # @brief Enable or disable the [GPBT] source tag on each log line.
-# @param[in] enabled  Boolean — FALSE suppresses the tag.
+# @param[in] enabled Boolean, FALSE suppresses the tag.
+# @remarks This function is a no-op when GPBT_LOG_PREFIX_ENABLED is FALSE globally,
+#          because the global option acts as a kill-switch for the prefix system.
 function(gpbt_setLogPrefixEnabled enabled)
   if(NOT GPBT_LOG_PREFIX_ENABLED)
     return()
@@ -114,6 +118,8 @@ function(gpbt_log severity)
 endfunction()
 
 # @brief Print the build tool startup banner.
+# @remarks The banner is guarded by GPBT_HAS_LOGGED_BANNER so it prints only once per CMake
+#          run even if gp-build-tool.cmake is included from multiple super-projects sharing a cache.
 function(gpbt_logBanner)
   if(NOT GPBT_LOG_BANNER_ENABLED)
     return()
@@ -128,8 +134,16 @@ function(gpbt_logBanner)
   set(cxxCompiler "${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
   set(cxxStandard "C++${CMAKE_CXX_STANDARD}")
   set(cmakeVersion "${CMAKE_VERSION}")
-  set(buildType "${CMAKE_BUILD_TYPE}")
   set(generatorName "${CMAKE_GENERATOR}")
+
+  # For multi-config generators (Visual Studio, Xcode) CMAKE_BUILD_TYPE is empty at configure time;
+  # report the full list of configured types instead.
+  get_property(_isMultiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+  if(_isMultiConfig)
+    set(buildType "${CMAKE_CONFIGURATION_TYPES} (multi-config)")
+  else()
+    set(buildType "${CMAKE_BUILD_TYPE}")
+  endif()
 
   find_package(Git QUIET)
   set(lastCommit "Unknown")
@@ -142,24 +156,28 @@ function(gpbt_logBanner)
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
       OUTPUT_VARIABLE lastCommit
       OUTPUT_STRIP_TRAILING_WHITESPACE
+      ERROR_QUIET
     )
     execute_process(
       COMMAND ${GIT_EXECUTABLE} remote get-url origin
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
       OUTPUT_VARIABLE gitRepository
       OUTPUT_STRIP_TRAILING_WHITESPACE
+      ERROR_QUIET
     )
     execute_process(
       COMMAND ${GIT_EXECUTABLE} log --format=%ad --date=short -1
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
       OUTPUT_VARIABLE lastCommitDate
       OUTPUT_STRIP_TRAILING_WHITESPACE
+      ERROR_QUIET
     )
     execute_process(
       COMMAND ${GIT_EXECUTABLE} log --format=%an -1
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
       OUTPUT_VARIABLE lastCommitAuthor
       OUTPUT_STRIP_TRAILING_WHITESPACE
+      ERROR_QUIET
     )
   endif()
 
@@ -184,6 +202,7 @@ endfunction()
 # @param[in] title Label shown in the header.
 function(gpbt_logSection title)
   _gpbt_buildPrefix(_prefix)
+  # Compute dash fill from the uncolored title string so ANSI escape bytes don't skew the width.
   set(_head "--- ${title} ")
   string(LENGTH "${_head}" _headLen)
   math(EXPR _dashCount "64 - ${_headLen}")
@@ -211,7 +230,7 @@ function(gpbt_logSeparator)
 endfunction()
 
 # @brief Begin a step-counter block. Must be paired with gpbt_logEndSteps.
-# @param[in] total  Total number of steps expected in this block.
+# @param[in] total Total number of steps expected in this block.
 function(gpbt_logBeginSteps total)
   gpbt_getProperty(GPBT_LOG_STEP_CURRENT _current)
   gpbt_getProperty(GPBT_LOG_STEP_TOTAL   _total)
@@ -243,7 +262,7 @@ function(gpbt_logStep)
   message(STATUS "${_prefix}${GPBT_COLOR_FG_HI_BOLD_WHITE}[${_paddedStep}/${_total}]${GPBT_COLOR_RESET} ${_msg}")
 endfunction()
 
-# @brief End a step-counter block and reset the counter.
+# @brief End a step-counter block and restore the previous counter state.
 function(gpbt_logEndSteps)
   gpbt_getProperty(GPBT_LOG_STEP_CURRENT_STACK _currentStack)
   gpbt_getProperty(GPBT_LOG_STEP_TOTAL_STACK   _totalStack)
@@ -263,10 +282,10 @@ function(gpbt_logEndSteps)
   endif()
 endfunction()
 
-# @brief Begin a log group. Groups are only shown in Github CI environments and are ignored locally.
+# @brief Begin a log group. Groups are only shown in GitHub CI environments and are ignored locally.
 # @param[in] groupName Name of the group, shown in CI logs.
 function(gpbt_startGroup groupName)
-  if(NOT GPBT_IS_RUNNED_IN_CI)
+  if(NOT GPBT_RUNNING_IN_CI)
     return()
   endif()
   execute_process(COMMAND ${CMAKE_COMMAND} -E echo "::group::${groupName}")
@@ -274,7 +293,7 @@ endfunction()
 
 # @brief End a log group.
 function(gpbt_endGroup)
-  if(NOT GPBT_IS_RUNNED_IN_CI)
+  if(NOT GPBT_RUNNING_IN_CI)
     return()
   endif()
   execute_process(COMMAND ${CMAKE_COMMAND} -E echo "::endgroup::")

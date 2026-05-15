@@ -2,10 +2,12 @@
 # For more information, see https://graphical-playground/legal
 # mailto:support AT graphical-playground DOT com
 
+include_guard(GLOBAL)
+
 include(gp-build-tool/utilities/properties)
 include(gp-build-tool/utilities/strings)
 include(gp-build-tool/utilities/logger)
-include(gp-build-tool/targets/utilities/shared)
+include(gp-build-tool/targets/utilities/target-props)
 
 # @brief Appends build type flags to the current target based on the compiler, platform and build type.
 function(gpbt_applyBuildTypeFlags)

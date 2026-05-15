@@ -2,10 +2,12 @@
 # For more information, see https://graphical-playground/legal
 # mailto:support AT graphical-playground DOT com
 
+include_guard(GLOBAL)
+
 include(gp-build-tool/utilities/properties)
 include(gp-build-tool/utilities/strings)
 include(gp-build-tool/utilities/logger)
-include(gp-build-tool/targets/utilities/shared)
+include(gp-build-tool/targets/utilities/target-props)
 include(gp-build-tool/targets/utilities/validation)
 include(gp-build-tool/targets/executable)
 include(gp-build-tool/targets/module)
@@ -26,14 +28,23 @@ else()
 endif()
 
 include(gp-build-tool/platforms/default)
+# Platform detection: more-specific checks must come before generic catch-alls.
+# Android sets CMAKE_SYSTEM_NAME = "Android" but also sets UNIX, so it must be tested first.
+# iOS sets CMAKE_SYSTEM_NAME = "iOS" but also sets APPLE, so it must be tested before APPLE.
 if(WIN32)
   include(gp-build-tool/platforms/windows)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Android")
+  include(gp-build-tool/platforms/android)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+  include(gp-build-tool/platforms/ios)
 elseif(APPLE)
   include(gp-build-tool/platforms/macos)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+  include(gp-build-tool/platforms/freebsd)
 elseif(UNIX)
   include(gp-build-tool/platforms/linux)
 else()
-  gpbt_log(WARNING "Unsupported platform: ${CMAKE_SYSTEM_NAME}. Default platform settings will be used, which may lead to suboptimal builds or compatibility issues.")
+  gpbt_log(WARNING "Unsupported platform: ${CMAKE_SYSTEM_NAME}. Default platform settings will be used.")
 endif()
 
 set(GPBT_AVAILABLE_TARGET_TYPES "executable;module;plugin")
@@ -42,8 +53,9 @@ set(GPBT_AVAILABLE_TARGET_TYPES "executable;module;plugin")
 # @param[in] inTargetType The type of the target (e.g., "executable", "module", "plugin").
 # @param[in] inTargetName The name of the target.
 # @param[in] inTargetLocation The file system location of the target (used for generating a unique guid and finding source files).
+# @param[in] inCleanTargetName Pre-computed clean target name (already regex-replaced and lowercased by gpbt_startTarget).
 # @remarks This function only run on the REGISTRATION phase.
-function(gpbt_setupTargetProperties inTargetType inTargetName inTargetLocation)
+function(gpbt_setupTargetProperties inTargetType inTargetName inTargetLocation inCleanTargetName)
   gpbt_checkInTargetDefinition("gpbt_setupTargetProperties")
   gpbt_runOnlyDuringPhase("REGISTRATION")
 
@@ -53,9 +65,8 @@ function(gpbt_setupTargetProperties inTargetType inTargetName inTargetLocation)
     gpbt_log(FATAL "Invalid target type: ${inTargetType}")
   endif()
 
-  # Clean the target name
-  string(REGEX REPLACE "[^a-zA-Z0-9_]+" "_" cleanTargetName "${inTargetName}")
-  string(TOLOWER cleanTargetName "${cleanTargetName}")
+  # Use the pre-computed clean name passed by gpbt_startTarget (avoids recomputing).
+  set(cleanTargetName "${inCleanTargetName}")
 
   # Generate the alias name
   string(REPLACE "_" "::" defaultAliasName "${cleanTargetName}")
@@ -66,15 +77,19 @@ function(gpbt_setupTargetProperties inTargetType inTargetName inTargetLocation)
   # Convert the target location to a MD5 guid
   string(MD5 targetGuid "${inTargetLocation}")
 
-  # Find C/C++ sources in the `/private` and `/internal` folders
-  file(GLOB_RECURSE targetSources FOLLOW_SYMLINKS CONFIGURE_DEPENDS
-    # Private folder
+  # Discover C/C++ sources in private/ and internal/ subdirectories.
+  # CONFIGURE_DEPENDS triggers a reconfigure when files are added/removed; disable it with
+  # GPBT_CONFIGURE_DEPENDS=OFF in environments where filesystem polling is expensive (e.g. large CI farms).
+  set(_glob_extra_args "")
+  if(GPBT_CONFIGURE_DEPENDS)
+    list(APPEND _glob_extra_args CONFIGURE_DEPENDS)
+  endif()
+
+  file(GLOB_RECURSE targetSources FOLLOW_SYMLINKS ${_glob_extra_args}
     "${inTargetLocation}/private/*.c"
     "${inTargetLocation}/private/*.cc"
     "${inTargetLocation}/private/*.cpp"
     "${inTargetLocation}/private/*.cxx"
-
-    # Internal folder
     "${inTargetLocation}/internal/*.c"
     "${inTargetLocation}/internal/*.cc"
     "${inTargetLocation}/internal/*.cpp"
@@ -183,16 +198,17 @@ function(gpbt_startTarget inTargetType inTargetName inTargetLocation)
   # Set the flag to indicate we're now in a target definition
   gpbt_setProperty(GPBT_IS_IN_TARGET_DEFINITION TRUE)
 
-  # Clean the target name
+  # Compute the clean name once here; it is passed to gpbt_setupTargetProperties to avoid
+  # computing it a second time and to guarantee the scope key and the registered name match.
   string(REGEX REPLACE "[^a-zA-Z0-9_]+" "_" cleanTargetName "${inTargetName}")
-  string(TOLOWER cleanTargetName "${cleanTargetName}")
+  string(TOLOWER "${cleanTargetName}" cleanTargetName)
 
   # Push a specific scope for the target properties
   gpbt_pushScope("${cleanTargetName}")
 
   # Set up the initial properties for the target.
   # Will only run during the REGISTRATION phase
-  gpbt_setupTargetProperties("${inTargetType}" "${inTargetName}" "${inTargetLocation}")
+  gpbt_setupTargetProperties("${inTargetType}" "${inTargetName}" "${inTargetLocation}" "${cleanTargetName}")
 endfunction()
 
 # @brief End the definition of the current target.
@@ -202,20 +218,20 @@ endfunction()
 function(gpbt_endTarget)
   gpbt_checkInTargetDefinition("gpbt_endTarget")
 
-  # Apply build type flags based on the compiler, platform and build type.
-  # This will append the appropriate compiler flags based on the current build type (Debug, Development, Profile, Shipping) and the compiler being used.
+  # Append compiler/platform/build-type flags (CONFIGURATION phase only; returns early in REGISTRATION).
   gpbt_applyBuildTypeFlags()
 
-  # Check for target with empty sources, which is usually a mistake and should be avoided.
-  # This will log a warning to alert the user about the potential issue.
+  # Validate no duplicate flags were accumulated from compiler modules (CONFIGURATION phase only).
+  gpbt_checkAllDuplicateFlags()
+
+  # Ensure the target has at least one source file (CONFIGURATION phase only).
   gpbt_checkForEmptySources()
 
   if(GPBT_DUMP_TARGETS_PROPERTIES)
-    # Will only run during the CONFIGURATION phase
     gpbt_dumpTargetProperties()
   endif()
 
-  # Generate the actual CMake target based on the target type (executable, module, plugin).
+  # Generate the actual CMake target (CONFIGURATION phase only; each sub-function guards itself).
   gpbt_getScopedProperty(_targetType targetType)
   if(targetType STREQUAL "executable")
     gpbt_defineCMakeExecutableTarget()
@@ -227,7 +243,6 @@ function(gpbt_endTarget)
     gpbt_log(FATAL "Unknown target type: ${targetType}")
   endif()
 
-  # Clean up the target properties by popping the scope and resetting the in-target-definition flag.
   gpbt_popScope()
   gpbt_setProperty(GPBT_IS_IN_TARGET_DEFINITION FALSE)
 endfunction()

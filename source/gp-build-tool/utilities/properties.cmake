@@ -2,6 +2,8 @@
 # For more information, see https://graphical-playground/legal
 # mailto:support AT graphical-playground DOT com
 
+include_guard(GLOBAL)
+
 # @brief Get a global property value.
 # @param[in] propertyName The name of the property to retrieve.
 # @param[out] outputVariable The variable to store the retrieved property value.

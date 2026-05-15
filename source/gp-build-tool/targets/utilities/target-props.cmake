@@ -2,6 +2,8 @@
 # For more information, see https://graphical-playground/legal
 # mailto:support AT graphical-playground DOT com
 
+include_guard(GLOBAL)
+
 include(gp-build-tool/utilities/strings)
 
 # @brief Check if the current function is being called within a target definition.
@@ -82,7 +84,7 @@ function(gpbt_resolveDependencyList inList outList)
   foreach(dependency IN LISTS ${inList})
     # Clean the dependency name
     string(REGEX REPLACE "[^a-zA-Z0-9_]+" "_" cleanDependency "${dependency}")
-    string(TOLOWER cleanDependency "${cleanDependency}")
+    string(TOLOWER "${cleanDependency}" cleanDependency)
 
     # Check if the cleaned dependency name exists in the list of existing targets
     if("${cleanDependency}" IN_LIST existingTargets)

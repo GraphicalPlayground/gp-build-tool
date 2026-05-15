@@ -2,32 +2,37 @@
 # For more information, see https://graphical-playground/legal
 # mailto:support AT graphical-playground DOT com
 
+include_guard(GLOBAL)
+
 include(gp-build-tool/utilities/properties)
 include(gp-build-tool/utilities/strings)
 include(gp-build-tool/utilities/logger)
-include(gp-build-tool/targets/utilities/shared)
+include(gp-build-tool/targets/utilities/target-props)
 
 macro(gpbt_applyTargetProperties)
   gpbt_checkInTargetDefinition("gpbt_applyTargetProperties")
   gpbt_runOnlyDuringPhase("CONFIGURATION")
 
-  # Convert the clean name to uppercase for use in the export macro definition
+  # Convert the clean name to uppercase for the export macro definition (e.g. GP_CORE_EXPORTS).
   string(TOUPPER "${targetCleanName}" targetCleanNameUpper)
 
-  # Log the application of properties for better visibility in the build output.
   gpbt_log(INFO "Applying properties for target: ${targetName} (Type: ${targetType})")
 
-  # Set the target properties based on the collected information.
+  # CXX_VISIBILITY_PRESET is set to hidden to match the -fvisibility=hidden compiler flag
+  # applied by the GCC/Clang compiler modules. VISIBILITY_INLINES_HIDDEN is kept OFF here
+  # because the compiler modules already handle it via -fvisibility-inlines-hidden.
   set_target_properties(${targetExportName} PROPERTIES
     OUTPUT_NAME "${targetOutputName}"
     DEFINE_SYMBOL "GP_${targetCleanNameUpper}_EXPORTS"
-    CXX_VISIBILITY_PRESET default
-    VISIBILITY_INLINES_HIDDEN OFF
+    CXX_VISIBILITY_PRESET hidden
+    VISIBILITY_INLINES_HIDDEN ON
     POSITION_INDEPENDENT_CODE ON
     FOLDER "${targetCustomFolder}"
   )
 
-  # On Windows, if the target is a shared library, we need to ensure that all symbols are exported.
+  # On Windows shared libraries, WINDOWS_EXPORT_ALL_SYMBOLS auto-generates the __declspec(dllexport)
+  # decorators so callers don't need manual GP_API annotations during early development.
+  # This is intentionally mutually exclusive with -fvisibility=hidden (which only affects ELF/Mach-O).
   if(WIN32 AND targetIsBuildShared)
     set_target_properties(${targetExportName} PROPERTIES
       WINDOWS_EXPORT_ALL_SYMBOLS ON
@@ -35,7 +40,6 @@ macro(gpbt_applyTargetProperties)
     gpbt_log(VERBOSE "Enabled WINDOWS_EXPORT_ALL_SYMBOLS for target ${targetName} since it's a shared library on Windows")
   endif()
 
-  # If Unity Build is enabled for this target, set the appropriate properties to enable it in CMake.
   if(targetEnableUnityBuild)
     set_target_properties(${targetExportName} PROPERTIES
       UNITY_BUILD ON
@@ -49,14 +53,13 @@ macro(gpbt_applyIncludeDirectories)
   gpbt_checkInTargetDefinition("gpbt_applyIncludeDirectories")
   gpbt_runOnlyDuringPhase("CONFIGURATION")
 
-  # Apply public include directories
   target_include_directories(${targetExportName}
     PUBLIC
       $<BUILD_INTERFACE:${targetPublicIncludeDirectories}>
       $<INSTALL_INTERFACE:include/${targetName}>
     PRIVATE
       ${targetPrivateIncludeDirectories}
-      ${targetInternalIncludeDirectories} # TODO: Internal need to be fixed.
+      ${targetInternalIncludeDirectories} # TODO: INTERNAL include dirs need cross-module visibility semantics.
   )
 endmacro()
 
@@ -64,7 +67,6 @@ macro(gpbt_applyPreCompiledHeaders)
   gpbt_checkInTargetDefinition("gpbt_applyPreCompiledHeaders")
   gpbt_runOnlyDuringPhase("CONFIGURATION")
 
-  # Apply precompiled headers if any are specified for this target.
   list(LENGTH targetPreCompiledHeaders numPCH)
   if(numPCH GREATER 0)
     target_precompile_headers(${targetExportName} PRIVATE ${targetPreCompiledHeaders})
@@ -76,21 +78,21 @@ macro(gpbt_applyCompileDefinitions)
   gpbt_checkInTargetDefinition("gpbt_applyCompileDefinitions")
   gpbt_runOnlyDuringPhase("CONFIGURATION")
 
-  # Apply compile definitions based on their public visibility.
   list(LENGTH targetPublicCompileDefinitions numPublicDefs)
   if(numPublicDefs GREATER 0)
     target_compile_definitions(${targetExportName} PUBLIC ${targetPublicCompileDefinitions})
     gpbt_log(VERBOSE "Added ${numPublicDefs} public compile definitions to target ${targetName}")
   endif()
 
-  # Apply compile definitions based on their internal visibility.
+  # INTERNAL definitions are propagated between modules but not to end-user consumers.
+  # They are mapped to PRIVATE at the CMake level for now; cross-module propagation
+  # will be handled by the INTERNAL include directory mechanism when implemented.
   list(LENGTH targetInternalCompileDefinitions numInternalDefs)
   if(numInternalDefs GREATER 0)
     target_compile_definitions(${targetExportName} PRIVATE ${targetInternalCompileDefinitions})
     gpbt_log(VERBOSE "Added ${numInternalDefs} internal compile definitions to target ${targetName}")
   endif()
 
-  # Apply compile definitions based on their private visibility.
   list(LENGTH targetPrivateCompileDefinitions numPrivateDefs)
   if(numPrivateDefs GREATER 0)
     target_compile_definitions(${targetExportName} PRIVATE ${targetPrivateCompileDefinitions})
@@ -102,7 +104,6 @@ macro(gpbt_applyCompileFeatures)
   gpbt_checkInTargetDefinition("gpbt_applyCompileFeatures")
   gpbt_runOnlyDuringPhase("CONFIGURATION")
 
-  # Apply compile features to enforce C++23 standard for this target.
   target_compile_features(${targetExportName} PUBLIC cxx_std_23)
   gpbt_log(VERBOSE "Enforced C++23 standard for target ${targetName}")
 endmacro()
@@ -111,21 +112,18 @@ macro(gpbt_applyCompileOptions)
   gpbt_checkInTargetDefinition("gpbt_applyCompileOptions")
   gpbt_runOnlyDuringPhase("CONFIGURATION")
 
-  # Apply compile options based on their public visibility.
   list(LENGTH targetPublicCompileOptions numPublicOpts)
   if(numPublicOpts GREATER 0)
     target_compile_options(${targetExportName} PUBLIC ${targetPublicCompileOptions})
     gpbt_log(VERBOSE "Added ${numPublicOpts} public compile options to target ${targetName}")
   endif()
 
-  # Apply compile options based on their internal visibility.
   list(LENGTH targetInternalCompileOptions numInternalOpts)
   if(numInternalOpts GREATER 0)
     target_compile_options(${targetExportName} PRIVATE ${targetInternalCompileOptions})
     gpbt_log(VERBOSE "Added ${numInternalOpts} internal compile options to target ${targetName}")
   endif()
 
-  # Apply compile options based on their private visibility.
   list(LENGTH targetPrivateCompileOptions numPrivateOpts)
   if(numPrivateOpts GREATER 0)
     target_compile_options(${targetExportName} PRIVATE ${targetPrivateCompileOptions})
@@ -137,21 +135,18 @@ macro(gpbt_applyLinkOptions)
   gpbt_checkInTargetDefinition("gpbt_applyLinkOptions")
   gpbt_runOnlyDuringPhase("CONFIGURATION")
 
-  # Apply link options based on their public visibility.
   list(LENGTH targetPublicLinkOptions numPublicOpts)
   if(numPublicOpts GREATER 0)
     target_link_options(${targetExportName} PUBLIC ${targetPublicLinkOptions})
     gpbt_log(VERBOSE "Added ${numPublicOpts} public link options to target ${targetName}")
   endif()
 
-  # Apply link options based on their internal visibility.
   list(LENGTH targetInternalLinkOptions numInternalOpts)
   if(numInternalOpts GREATER 0)
     target_link_options(${targetExportName} PRIVATE ${targetInternalLinkOptions})
     gpbt_log(VERBOSE "Added ${numInternalOpts} internal link options to target ${targetName}")
   endif()
 
-  # Apply link options based on their private visibility.
   list(LENGTH targetPrivateLinkOptions numPrivateOpts)
   if(numPrivateOpts GREATER 0)
     target_link_options(${targetExportName} PRIVATE ${targetPrivateLinkOptions})
@@ -163,7 +158,6 @@ macro(gpbt_applyDependencies)
   gpbt_checkInTargetDefinition("gpbt_applyDependencies")
   gpbt_runOnlyDuringPhase("CONFIGURATION")
 
-  # Resolve and link public dependencies, which will be propagated to consumers of this target.
   gpbt_resolveDependencyList(targetPublicDependencies resolvedPublicDependencies)
   list(LENGTH resolvedPublicDependencies numPublicDeps)
   if(numPublicDeps GREATER 0)
@@ -171,7 +165,8 @@ macro(gpbt_applyDependencies)
     gpbt_log(VERBOSE "Linked ${numPublicDeps} public dependencies to target ${targetName}")
   endif()
 
-  # Resolve and link internal dependencies, which will not be propagated to consumers of this target.
+  # INTERNAL dependencies: linked privately here; cross-module header access is handled
+  # by the INTERNAL include directories (TODO: implement propagation mechanism).
   gpbt_resolveDependencyList(targetInternalDependencies resolvedInternalDependencies)
   list(LENGTH resolvedInternalDependencies numInternalDeps)
   if(numInternalDeps GREATER 0)
@@ -179,12 +174,19 @@ macro(gpbt_applyDependencies)
     gpbt_log(VERBOSE "Linked ${numInternalDeps} internal dependencies to target ${targetName}")
   endif()
 
-  # Resolve and link private dependencies, which will not be propagated to consumers of this target.
   gpbt_resolveDependencyList(targetPrivateDependencies resolvedPrivateDependencies)
   list(LENGTH resolvedPrivateDependencies numPrivateDeps)
   if(numPrivateDeps GREATER 0)
     target_link_libraries(${targetExportName} PRIVATE ${resolvedPrivateDependencies})
     gpbt_log(VERBOSE "Linked ${numPrivateDeps} private dependencies to target ${targetName}")
+  endif()
+
+  # DYNAMIC dependencies: listed in the dependency graph for build-order purposes but not
+  # linked. They represent modules loaded at runtime via dlopen/LoadLibrary.
+  # TODO: Generate a header with symbol paths for each dynamic dependency.
+  list(LENGTH targetDynamicDependencies numDynamicDeps)
+  if(numDynamicDeps GREATER 0)
+    gpbt_log(VERBOSE "Target ${targetName} has ${numDynamicDeps} dynamic (runtime-loaded) dependencies: ${targetDynamicDependencies}")
   endif()
 endmacro()
 
@@ -192,23 +194,28 @@ macro(gpbt_applyTargetInstallation)
   gpbt_checkInTargetDefinition("gpbt_applyTargetInstallation")
   gpbt_runOnlyDuringPhase("CONFIGURATION")
 
-  # Setup installation rules for the target (optional, but common for libraries)
+  # GPBT_INSTALL_EXPORT_NAME is set in config.cmake and defaults to "GPTargets".
   install(TARGETS ${targetExportName}
-    EXPORT GPEngineTargets
+    EXPORT "${GPBT_INSTALL_EXPORT_NAME}"
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
     INCLUDES DESTINATION include
   )
 
-  # Install public headers to the appropriate location under include/ for this target.
-  foreach(_dir IN LISTS ${targetPublicIncludeDirectories})
-    install(DIRECTORY ${_dir}/
-      DESTINATION include/${targetName}
-      FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" PATTERN "*.hh" PATTERN "*.hxx"
-    )
+  # Install public headers; iterate over the list variable (not its expansion).
+  foreach(_dir IN LISTS targetPublicIncludeDirectories)
+    if(EXISTS "${_dir}")
+      install(DIRECTORY "${_dir}/"
+        DESTINATION "include/${targetName}"
+        FILES_MATCHING
+          PATTERN "*.h"
+          PATTERN "*.hpp"
+          PATTERN "*.hh"
+          PATTERN "*.hxx"
+      )
+    endif()
   endforeach()
 
-  # Log the installation setup for better visibility in the build output.
   gpbt_log(VERBOSE "Setup installation rules for target ${targetName}")
 endmacro()

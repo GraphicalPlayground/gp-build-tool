@@ -1,9 +1,8 @@
 # Copyright (c) - Graphical Playground. All rights reserved.
 # For more information, see https://graphical-playground/legal
 # mailto:support AT graphical-playground DOT com
-# Copyright (c) - Graphical Playground. All rights reserved.
-# For more information, see https://graphical-playground/legal
-# mailto:support AT graphical-playground DOT com
+
+include_guard(GLOBAL)
 
 include(gp-build-tool/compilers/default)
 
@@ -30,6 +29,11 @@ function(gpbt_applyBuildTypeFlags)
   gpbt_checkInTargetDefinition("gpbt_applyBuildTypeFlags")
   gpbt_runOnlyDuringPhase("CONFIGURATION")
 
+  # Enforce minimum Clang version: 17 is required for full C++23 support.
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "17.0")
+    gpbt_log(FATAL "Clang ${CMAKE_CXX_COMPILER_VERSION} is not supported. Minimum required version is Clang 17.")
+  endif()
+
   gpbt_getScopedProperty(_targetEnableStrictWarnings enableStrictWarnings)
 
   gpbt_appendScopedProperty(_targetPrivateCompileOptions
@@ -50,7 +54,7 @@ function(gpbt_applyBuildTypeFlags)
     "$<$<BOOL:${enableStrictWarnings}>:-Wsign-conversion>"
     "$<$<BOOL:${enableStrictWarnings}>:-Wdouble-promotion>"
     "$<$<BOOL:${enableStrictWarnings}>:-Wcast-align>"
-    "$<$<BOOL:${enableStrictWarnings}>:-Wshorten-64-to-32>"       # Clang: explicit 64→32 truncation
+    "$<$<BOOL:${enableStrictWarnings}>:-Wshorten-64-to-32>"       # Clang: explicit 64->32 truncation
 
     # UB / correctness
     "$<$<BOOL:${enableStrictWarnings}>:-Wnull-dereference>"
@@ -58,12 +62,12 @@ function(gpbt_applyBuildTypeFlags)
     "$<$<BOOL:${enableStrictWarnings}>:-Wunused>"
     "$<$<BOOL:${enableStrictWarnings}>:-Wimplicit-fallthrough>"
     "$<$<BOOL:${enableStrictWarnings}>:-Wformat=2>"
-    "$<$<BOOL:${enableStrictWarnings}>:-Wunreachable-code>"       # Clang: dead code after return/throw
-    "$<$<BOOL:${enableStrictWarnings}>:-Wunreachable-code-loop-increment>" # Clang: dead loop increment
-    "$<$<BOOL:${enableStrictWarnings}>:-Wloop-analysis>"          # Clang: suspicious loop patterns
-    "$<$<BOOL:${enableStrictWarnings}>:-Wmove>"                   # Clang: redundant / self std::move
-    "$<$<BOOL:${enableStrictWarnings}>:-Wrange-loop-analysis>"    # Clang: range-for copies/binds
-    "$<$<BOOL:${enableStrictWarnings}>:-Wreturn-std-move>"        # Clang: NRVO blocked; should std::move
+    "$<$<BOOL:${enableStrictWarnings}>:-Wunreachable-code>"
+    "$<$<BOOL:${enableStrictWarnings}>:-Wunreachable-code-loop-increment>"
+    "$<$<BOOL:${enableStrictWarnings}>:-Wloop-analysis>"
+    "$<$<BOOL:${enableStrictWarnings}>:-Wmove>"
+    "$<$<BOOL:${enableStrictWarnings}>:-Wrange-loop-analysis>"
+    "$<$<BOOL:${enableStrictWarnings}>:-Wreturn-std-move>"
 
     # C++23 best-practice
     "$<$<BOOL:${enableStrictWarnings}>:-Wno-c++98-compat>"        # Suppress compat noise; we target C++23
@@ -83,63 +87,65 @@ function(gpbt_applyBuildTypeFlags)
 
     # Debug
     "$<$<CONFIG:Debug>:-O0>"
-    "$<$<CONFIG:Debug>:-g3>"                          # Full DWARF + macro info
+    "$<$<CONFIG:Debug>:-g3>"
     "$<$<CONFIG:Debug>:-fno-omit-frame-pointer>"
     "$<$<CONFIG:Debug>:-fno-inline>"
     "$<$<CONFIG:Debug>:-fno-optimize-sibling-calls>"
     "$<$<CONFIG:Debug>:-fstack-protector-strong>"
-    # Clang's own run-time instrumentation
-    # ASan + UBSan: catches most memory bugs and UB at ~2× overhead.
-    # Gated on a separate GPBT property (GP_ENABLE_SANITIZERS) rather than
-    # always-on Debug so developers can opt in without rebuilding everything.
-    # Uncomment or wire via gpbt_getScopedProperty if desired:
+    # ASan + UBSan: catches most memory bugs and UB at ~2x overhead.
+    # Wire via a GPBT_ENABLE_SANITIZERS option when that feature is implemented.
     # "$<$<AND:$<CONFIG:Debug>,$<BOOL:${enableSanitizers}>>:-fsanitize=address,undefined>"
     # "$<$<AND:$<CONFIG:Debug>,$<BOOL:${enableSanitizers}>>:-fsanitize-recover=undefined>"
     # "$<$<AND:$<CONFIG:Debug>,$<BOOL:${enableSanitizers}>>:-fno-sanitize-recover=address>"
-    "$<$<CONFIG:Debug>:-D_LIBCPP_DEBUG=1>"            # libc++ bounds checking (Clang's stdlib)
-    "$<$<CONFIG:Debug>:-DDEBUG>"
-    "$<$<CONFIG:Debug>:-D_DEBUG>"
 
     # Development
     "$<$<CONFIG:Development>:-O2>"
     "$<$<CONFIG:Development>:-g>"
     "$<$<CONFIG:Development>:-fno-omit-frame-pointer>"
     "$<$<CONFIG:Development>:-fstack-protector>"
-    "$<$<CONFIG:Development>:-DNDEBUG>"
 
     # Profile
     "$<$<CONFIG:Profile>:-O3>"
     "$<$<CONFIG:Profile>:-g>"
-    "$<$<CONFIG:Profile>:-fno-omit-frame-pointer>"    # Mandatory for perf/Instruments/Tracy/Optick
-    "$<$<CONFIG:Profile>:-fno-inline-functions>"      # Accurate hot-path attribution
-    # Clang's own profiling instrumentation, generates .profraw for PGO feedback:
+    "$<$<CONFIG:Profile>:-fno-omit-frame-pointer>"
+    "$<$<CONFIG:Profile>:-fno-inline-functions>"
+    # PGO instrumentation — wire via gpbt_getScopedProperty when a .profdata file is present:
     # "$<$<AND:$<CONFIG:Profile>,$<BOOL:${enablePGOInstrument}>>:-fprofile-instr-generate>"
-    "$<$<CONFIG:Profile>:-DNDEBUG>"
-    "$<$<CONFIG:Profile>:-DGPBT_PROFILE=1>"
 
     # Shipping
     "$<$<CONFIG:Shipping>:-O3>"
     "$<$<CONFIG:Shipping>:-ffast-math>"
     "$<$<CONFIG:Shipping>:-fomit-frame-pointer>"
-    "$<$<CONFIG:Shipping>:-flto=thin>"                      # ThinLTO: parallel, scales to 100k-TU codebases
-    "$<$<CONFIG:Shipping>:-fwhole-program-vtables>"         # Cross-TU devirtualization (requires ThinLTO/LTO)
-    "$<$<CONFIG:Shipping>:-fvirtual-function-elimination>"  # Remove vtable slots provably never called
-    "$<$<CONFIG:Shipping>:-fno-semantic-interposition>"     # Elide PLT for within-DSO direct calls (Clang 11+)
+    "$<$<CONFIG:Shipping>:-flto=thin>"
+    "$<$<CONFIG:Shipping>:-fwhole-program-vtables>"
+    "$<$<CONFIG:Shipping>:-fvirtual-function-elimination>"
+    "$<$<CONFIG:Shipping>:-fno-semantic-interposition>"
     "$<$<CONFIG:Shipping>:-fmerge-all-constants>"
     "$<$<CONFIG:Shipping>:-fno-stack-protector>"
     "$<$<CONFIG:Shipping>:-fno-unwind-tables>"
     "$<$<CONFIG:Shipping>:-fno-asynchronous-unwind-tables>"
-    # PGO use, wire via gpbt_getScopedProperty if a .profdata file is present:
+    # PGO use — wire via gpbt_getScopedProperty if a .profdata file is present:
     # "$<$<AND:$<CONFIG:Shipping>,$<BOOL:${enablePGOUse}>>:-fprofile-instr-use=${GP_PGO_PROFILE_PATH}>"
-    "$<$<CONFIG:Shipping>:-DNDEBUG>"
-    "$<$<CONFIG:Shipping>:-DGPBT_SHIPPING=1>"
   )
 
-  # Add Linker Options
+  # Preprocessor definitions are routed through compile_definitions (not compile_options) so
+  # they are visible to CMake's definition management and IDE generators.
+  gpbt_appendScopedProperty(_targetPrivateCompileDefinitions
+    # Debug — libc++ bounds checking (Clang's stdlib)
+    "$<$<CONFIG:Debug>:DEBUG>"
+    "$<$<CONFIG:Debug>:_DEBUG>"
+    "$<$<CONFIG:Debug>:_LIBCPP_DEBUG=1>"
+
+    # Development / Profile / Shipping — disable assert guards
+    "$<$<CONFIG:Development>:NDEBUG>"
+    "$<$<CONFIG:Profile>:NDEBUG>"
+    "$<$<CONFIG:Profile>:GPBT_PROFILE=1>"
+    "$<$<CONFIG:Shipping>:NDEBUG>"
+    "$<$<CONFIG:Shipping>:GPBT_SHIPPING=1>"
+  )
+
   gpbt_appendScopedProperty(_targetPrivateLinkOptions
-    # Linker Selection
-    # Use lld on everything EXCEPT macOS (Darwin)
-    # Apple uses its own ld64/ld-prime linker.
+    # Use lld on everything EXCEPT macOS (Darwin uses its own ld64/ld-prime linker).
     "$<$<NOT:$<PLATFORM_ID:Darwin>>:-fuse-ld=lld>"
 
     # ELF (Linux / Android) Linker Flags

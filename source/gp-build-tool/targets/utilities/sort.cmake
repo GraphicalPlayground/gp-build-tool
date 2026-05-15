@@ -2,11 +2,13 @@
 # For more information, see https://graphical-playground/legal
 # mailto:support AT graphical-playground DOT com
 
+include_guard(GLOBAL)
+
 include(gp-build-tool/utilities/properties)
 include(gp-build-tool/utilities/logger)
 
 # @brief Internal function to perform a topological sort of the registered targets based on their dependencies. This is used to determine the correct build order of the targets.
-#        It uses a depth-first search approach to sort the targets. If it detects a circular dependency, it will report an error and stop the configuration process.
+#        It uses Kahn's algorithm (iterative BFS): a node is promoted to the sorted list only once all its registered dependencies are already sorted. Targets remaining after the loop indicate a cycle.
 # @param[out] outSortedList The output variable where the sorted list of targets will be stored.
 function(gpbt_sortTargets outSortedList)
   # Retrieve the master list of all registered targets
@@ -16,7 +18,7 @@ function(gpbt_sortTargets outSortedList)
   set(cleanRegisteredTargets "")
   foreach(target IN LISTS registeredTargets)
     string(REGEX REPLACE "[^a-zA-Z0-9_]+" "_" cleanTargetName "${target}")
-    string(TOLOWER cleanTargetName "${cleanTargetName}")
+    string(TOLOWER "${cleanTargetName}" cleanTargetName)
     list(APPEND cleanRegisteredTargets "${cleanTargetName}")
   endforeach()
 

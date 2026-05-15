@@ -2,6 +2,8 @@
 # For more information, see https://graphical-playground/legal
 # mailto:support AT graphical-playground DOT com
 
+include_guard(GLOBAL)
+
 # List of available string case formats for validation
 set(GPBT_AVAILABLE_STRING_CASES "UPPERCASE;lowercase;PascalCase;camelCase;snake_case;SNAKE_CASE;kebab-case;KEBAB-CASE")
 

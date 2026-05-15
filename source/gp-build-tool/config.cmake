@@ -2,6 +2,8 @@
 # For more information, see https://graphical-playground/legal
 # mailto:support AT graphical-playground DOT com
 
+include_guard(GLOBAL)
+
 # Global configuration for the build tool and its tests.
 set(GPBT_CURRENT_VERSION "0.4.0")
 
@@ -13,7 +15,7 @@ option(GPBT_TESTS_ENABLED "Set to true to run build tool tests" FALSE)
 option(GPBT_TESTS_FILTER_SECTION "If set, only run test sections that contain this string in their name" "")
 
 # Specific options
-option(GPBT_IS_RUNNED_IN_CI "Set to true if the build tool is being run in a CI environment" FALSE)
+option(GPBT_RUNNING_IN_CI "Set to true if the build tool is being run in a CI environment" FALSE)
 
 # Logging
 option(GPBT_LOG_PREFIX_ENABLED "Set to true to enable log prefix" FALSE)
@@ -23,5 +25,12 @@ option(GPBT_LOG_VERBOSE_ENABLED "Set to true to enable verbose logging" FALSE)
 option(GPBT_LOG_BANNER_ENABLED "Set to true to enable log banner" TRUE)
 option(GPBT_DUMP_TARGETS_PROPERTIES "Set to true to dump target properties after configuration" FALSE)
 
-# Building Option
+# Building options
 option(GPBT_IS_MONOLITHIC "Set to true to build all targets in a single monolithic library" FALSE)
+
+# Source discovery: set to FALSE in CI environments where filesystem polling is expensive.
+option(GPBT_CONFIGURE_DEPENDS "Rerun CMake configure when globbed source files change" TRUE)
+
+# Install export set name. All targets are added to this CMake export set.
+# Change this to match your project's find_package() name.
+set(GPBT_INSTALL_EXPORT_NAME "GPTargets" CACHE STRING "Name of the CMake install export set")

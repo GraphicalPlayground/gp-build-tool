@@ -2,6 +2,8 @@
 # For more information, see https://graphical-playground/legal
 # mailto:support AT graphical-playground DOT com
 
+include_guard(GLOBAL)
+
 # Generate the ASCII escape character
 string(ASCII 27 GPBT_ASCII_ESCAPE)
 

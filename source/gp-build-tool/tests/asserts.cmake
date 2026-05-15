@@ -2,6 +2,8 @@
 # For more information, see https://graphical-playground/legal
 # mailto:support AT graphical-playground DOT com
 
+include_guard(GLOBAL)
+
 include(gp-build-tool/config)
 include(gp-build-tool/utilities/colors)
 include(gp-build-tool/utilities/properties)
@@ -120,7 +122,7 @@ function(gpbt_assertFail description)
     message(FATAL_ERROR "gpbt_assertFail called without a matching gpbt_startTestSection")
   endif()
 
-  gpbt_incrementProperty(GPBT_TESTS_${cleanedTestName}_ASSERTIONS)
+  gpbt_incrementProperty(GPBT_TESTS_${currentSection}_ASSERTIONS)
   gpbt_incrementProperty(GPBT_TESTS_STATS_ASSERTIONS)
   gpbt_appendProperty(GPBT_TESTS_${currentSection}_FAILED_TESTS "${description}")
 
@@ -135,7 +137,7 @@ function(gpbt_assertSuccess description)
     message(FATAL_ERROR "gpbt_assertSuccess called without a matching gpbt_startTestSection")
   endif()
 
-  gpbt_incrementProperty(GPBT_TESTS_${cleanedTestName}_ASSERTIONS)
+  gpbt_incrementProperty(GPBT_TESTS_${currentSection}_ASSERTIONS)
   gpbt_incrementProperty(GPBT_TESTS_STATS_ASSERTIONS)
 
   message(STATUS "${GPBT_COLOR_FG_GREEN}[    OK    ]${GPBT_COLOR_RESET} ${description}")

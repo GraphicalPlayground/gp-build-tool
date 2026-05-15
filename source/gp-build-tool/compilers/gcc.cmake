@@ -2,6 +2,8 @@
 # For more information, see https://graphical-playground/legal
 # mailto:support AT graphical-playground DOT com
 
+include_guard(GLOBAL)
+
 include(gp-build-tool/compilers/default)
 
 # @brief GCC specialization of gpbt_applyBuildTypeFlags.
@@ -22,6 +24,11 @@ function(gpbt_applyBuildTypeFlags)
   gpbt_checkInTargetDefinition("gpbt_applyBuildTypeFlags")
   gpbt_runOnlyDuringPhase("CONFIGURATION")
 
+  # Enforce minimum GCC version: 13 is required for full C++23 support.
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "13.0")
+    gpbt_log(FATAL "GCC ${CMAKE_CXX_COMPILER_VERSION} is not supported. Minimum required version is GCC 13.")
+  endif()
+
   gpbt_getScopedProperty(_targetEnableStrictWarnings enableStrictWarnings)
 
   gpbt_appendScopedProperty(_targetPrivateCompileOptions
@@ -38,8 +45,8 @@ function(gpbt_applyBuildTypeFlags)
 
     # Type-safety & implicit conversions
     "$<$<BOOL:${enableStrictWarnings}>:-Wconversion>"            # Implicit narrowing
-    "$<$<BOOL:${enableStrictWarnings}>:-Wsign-conversion>"       # Signed↔unsigned implicit
-    "$<$<BOOL:${enableStrictWarnings}>:-Wdouble-promotion>"      # float→double implicit
+    "$<$<BOOL:${enableStrictWarnings}>:-Wsign-conversion>"       # Signed/unsigned implicit
+    "$<$<BOOL:${enableStrictWarnings}>:-Wdouble-promotion>"      # float->double implicit
     "$<$<BOOL:${enableStrictWarnings}>:-Wcast-align>"            # Alignment-unsafe cast
 
     # Undefined / unspecified behaviour triggers
@@ -73,25 +80,18 @@ function(gpbt_applyBuildTypeFlags)
     "$<$<CONFIG:Debug>:-fno-inline>"                  # No inlining: every call appears in the stack
     "$<$<CONFIG:Debug>:-fno-optimize-sibling-calls>"  # Disable tail-call opt (preserve call frames)
     "$<$<CONFIG:Debug>:-fstack-protector-strong>"     # Canaries on all functions with buffers/VLAs
-    "$<$<CONFIG:Debug>:-D_GLIBCXX_DEBUG>"             # libstdc++ bounds & iterator validity checks
-    "$<$<CONFIG:Debug>:-D_GLIBCXX_DEBUG_PEDANTIC>"    # Strict libstdc++ pedantic mode
-    "$<$<CONFIG:Debug>:-DDEBUG>"
-    "$<$<CONFIG:Debug>:-D_DEBUG>"
 
     # Development
     "$<$<CONFIG:Development>:-O2>"
     "$<$<CONFIG:Development>:-g>"                       # DWARF for crash dump symbolication
     "$<$<CONFIG:Development>:-fno-omit-frame-pointer>"  # Keep frame pointers for devtools
     "$<$<CONFIG:Development>:-fstack-protector>"        # Lighter canary vs -strong
-    "$<$<CONFIG:Development>:-DNDEBUG>"
 
     # Profile
     "$<$<CONFIG:Profile>:-O3>"
     "$<$<CONFIG:Profile>:-g>"                                 # Symbols for perf/callgrind/Tracy
     "$<$<CONFIG:Profile>:-fno-omit-frame-pointer>"            # Mandatory for perf record / gprof / Valgrind
     "$<$<CONFIG:Profile>:-fno-inline-functions-called-once>"  # Prevent single-caller collapse: more accurate hot-path attribution
-    "$<$<CONFIG:Profile>:-DNDEBUG>"
-    "$<$<CONFIG:Profile>:-DGPBT_PROFILE=1>"
 
     # Shipping
     "$<$<CONFIG:Shipping>:-O3>"
@@ -103,18 +103,33 @@ function(gpbt_applyBuildTypeFlags)
     "$<$<CONFIG:Shipping>:-fno-stack-protector>"            # Remove canaries from hot paths
     "$<$<CONFIG:Shipping>:-fno-unwind-tables>"              # Strip .eh_frame/.ARM.exidx if exceptions disabled
     "$<$<CONFIG:Shipping>:-fno-asynchronous-unwind-tables>" # Strip async-unwind metadata
-    "$<$<CONFIG:Shipping>:-DNDEBUG>"
-    "$<$<CONFIG:Shipping>:-DGPBT_SHIPPING=1>"
   )
 
-  # Add Linker Options
-  gpbt_appendScopedProperty(_targetPrivateLinkOptions
-    # All configurations
-    "-Wl,--gc-sections"            # Prune dead code (pairs with -ffunction-sections / -fdata-sections)
+  # Preprocessor definitions are routed through compile_definitions (not compile_options) so
+  # they are visible to CMake's definition management and IDE generators.
+  gpbt_appendScopedProperty(_targetPrivateCompileDefinitions
+    # Debug — libstdc++ bounds and iterator validity checks
+    "$<$<CONFIG:Debug>:DEBUG>"
+    "$<$<CONFIG:Debug>:_DEBUG>"
+    "$<$<CONFIG:Debug>:_GLIBCXX_DEBUG>"
+    "$<$<CONFIG:Debug>:_GLIBCXX_DEBUG_PEDANTIC>"
 
-    # Shipping
-    "$<$<CONFIG:Shipping>:-Wl,-O3>"           # Link-time optimization level
-    "$<$<CONFIG:Shipping>:-Wl,--as-needed>"   # Only link libraries that actually satisfy unresolved references
-    "$<$<CONFIG:Shipping>:-flto=auto>"        # GCC requires the LTO flag at link-time as well
+    # Development / Profile / Shipping — disable assert guards
+    "$<$<CONFIG:Development>:NDEBUG>"
+    "$<$<CONFIG:Profile>:NDEBUG>"
+    "$<$<CONFIG:Profile>:GPBT_PROFILE=1>"
+    "$<$<CONFIG:Shipping>:NDEBUG>"
+    "$<$<CONFIG:Shipping>:GPBT_SHIPPING=1>"
+  )
+
+  gpbt_appendScopedProperty(_targetPrivateLinkOptions
+    # All configurations: prune dead code sections (pairs with -ffunction/data-sections)
+    "-Wl,--gc-sections"
+
+    # Shipping: link-time optimization level and symbol pruning
+    "$<$<CONFIG:Shipping>:-Wl,-O3>"
+    "$<$<CONFIG:Shipping>:-Wl,--as-needed>"
+    # GCC requires -flto at link time as well when using LTO at compile time.
+    "$<$<CONFIG:Shipping>:-flto=auto>"
   )
 endfunction()
