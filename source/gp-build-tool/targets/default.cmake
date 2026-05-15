@@ -119,6 +119,10 @@ function(gpbt_setupTargetProperties inTargetType inTargetName inTargetLocation)
     _targetEnableStrictWarnings TRUE
     _targetEnableUnityBuild FALSE
     _targetIsBuildShared TRUE
+
+    _targetExecutableResourceFiles ""
+    _targetExecutableEntryPoint ""
+    _targetExecutableHasGui FALSE
   )
 
   # If we're in a monolithic build, we need to set the target to be built as static.

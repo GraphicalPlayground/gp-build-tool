@@ -58,6 +58,9 @@ macro(gpbt_getAllScopedTargetProperty)
   gpbt_getScopedProperty(_targetEnableStrictWarnings targetEnableStrictWarnings)
   gpbt_getScopedProperty(_targetEnableUnityBuild targetEnableUnityBuild)
   gpbt_getScopedProperty(_targetIsBuildShared targetIsBuildShared)
+  gpbt_getScopedProperty(_targetExecutableResourceFiles targetExecutableResourceFiles)
+  gpbt_getScopedProperty(_targetExecutableEntryPoint targetExecutableEntryPoint)
+  gpbt_getScopedProperty(_targetExecutableHasGui targetExecutableHasGui)
 endmacro()
 
 # @brief Resolve a list of dependencies, including transitive dependencies, and store the result in an output variable.
