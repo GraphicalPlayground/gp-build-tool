@@ -16,4 +16,4 @@ jobs:
 
       - name: Build and test
         run: |
-          cmake -S . -B build -DGPBT_TESTS_ENABLED=TRUE -DGPBT_IS_RUNNED_IN_CI=TRUE
+          cmake -S . -B build -DGPBT_TESTS_ENABLED=TRUE -DGPBT_RUNNING_IN_CI=TRUE

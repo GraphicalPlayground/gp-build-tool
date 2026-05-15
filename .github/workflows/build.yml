@@ -19,7 +19,7 @@ jobs:
 
       - name: Configure GPBT examples
         run: |
-          cmake -S . -B build -DGPBT_IS_RUNNED_IN_CI=TRUE -DGPBT_LOG_VERBOSE_ENABLED=TRUE -DGPBT_DUMP_TARGETS_PROPERTIES=TRUE
+          cmake -S . -B build -DGPBT_RUNNING_IN_CI=TRUE -DGPBT_LOG_VERBOSE_ENABLED=TRUE -DGPBT_DUMP_TARGETS_PROPERTIES=TRUE
 
       - name: Build GPBT examples
         run: |
