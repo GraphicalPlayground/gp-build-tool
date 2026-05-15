@@ -118,7 +118,13 @@ function(gpbt_setupTargetProperties inTargetType inTargetName inTargetLocation)
     _targetEnableISPC FALSE
     _targetEnableStrictWarnings TRUE
     _targetEnableUnityBuild FALSE
+    _targetIsBuildShared TRUE
   )
+
+  # If we're in a monolithic build, we need to set the target to be built as static.
+  if(GPBT_IS_MONOLITHIC)
+    gpbt_setScopedProperty("_targetIsBuildShared" FALSE)
+  endif()
 
   # Set separately to avoid ARGN list-flattening in gpbt_setBulkScopedProperties
   gpbt_setScopedProperty("_targetSources" "${targetSources}")
