@@ -55,3 +55,12 @@ if(NOT CMAKE_EXPORT_COMPILE_COMMANDS)
   set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE BOOL "Whether to generate a compile_commands.json file." FORCE)
   gpbt_log(LOG "No setting for CMAKE_EXPORT_COMPILE_COMMANDS specified. Defaulting to ON.")
 endif()
+
+# If the build is not a monolithic build, set the default library type to OBJECT. Otherwise, set it to STATIC.
+if(NOT GPBT_IS_MONOLITHIC)
+  set(BUILD_SHARED_LIBS ON CACHE BOOL "Whether to build shared libraries." FORCE)
+  gpbt_log(LOG "GPBT_IS_MONOLITHIC is OFF. Defaulting to building shared libraries.")
+else()
+  set(BUILD_SHARED_LIBS OFF CACHE BOOL "Whether to build shared libraries." FORCE)
+  gpbt_log(LOG "GPBT_IS_MONOLITHIC is ON. Defaulting to building static libraries.")
+endif()
