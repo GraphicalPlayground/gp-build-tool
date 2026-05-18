@@ -37,11 +37,15 @@ else()
 endif()
 
 # Detect and cache the current compiler as a GP compiler token.
-# Token values: MSVC | Clang | GCC | Unknown
+# Token values: MSVC | Clang | Clang-CL | GCC | Unknown
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   set(GPBT_CURRENT_COMPILER "MSVC")
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set(GPBT_CURRENT_COMPILER "Clang")
+  if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+    set(GPBT_CURRENT_COMPILER "Clang-CL")
+  else()
+    set(GPBT_CURRENT_COMPILER "Clang")
+  endif()
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   set(GPBT_CURRENT_COMPILER "GCC")
 else()
