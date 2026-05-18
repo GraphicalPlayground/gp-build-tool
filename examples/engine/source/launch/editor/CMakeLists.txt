@@ -6,4 +6,5 @@ include(gp-build-tool)
 
 gpStartExecutable(editor)
   gpAddDependency(PUBLIC core)
+  gpAddDependency(PRIVATE gp::thirdparty::nlohmann_json)
 gpEndExecutable()
