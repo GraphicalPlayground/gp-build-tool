@@ -17,6 +17,7 @@ GPBT detects the active C++ compiler and applies a corresponding set of flags ac
 | Compiler | `GPBT_CURRENT_COMPILER` | Minimum version | Notes |
 | --- | --- | --- | --- |
 | MSVC (Visual C++) | `MSVC` | VS 2022 17.x | Required for C++23 support |
+| Clang-CL (Windows) | `Clang-CL` | 17.0 | Clang with MSVC frontend |
 | Clang | `Clang` | 17.0 | Includes Apple Clang on macOS and iOS |
 | GCC | `GCC` | 13.0 | Required for C++23 feature completeness |
 
@@ -26,7 +27,7 @@ GPBT detects the compiler automatically. You do not need to set anything. The to
 
 ```bash
 cmake -S . -B build
-# GPBT_CURRENT_COMPILER is now set to "MSVC", "Clang", or "GCC"
+# GPBT_CURRENT_COMPILER is now set to "MSVC", "Clang-CL", "Clang", or "GCC"
 ```
 
 ## Flags applied per compiler
@@ -42,6 +43,16 @@ GPBT applies different sets of flags depending on the active compiler and config
 | Development | `/O2`, `/Zi` |
 | Profile | `/O2`, `/GL` (LTO) |
 | Shipping | `/O2`, `/GL` (LTO) |
+
+### Clang-CL (Windows)
+
+| Configuration | Key flags |
+| --- | --- |
+| All | `/std:c++23`, `/W4`, `/WX`, `/permissive-`, `-Wextra`, `/Zc:__cplusplus` |
+| Debug | `/Od`, `/Zi`, `-fstack-protector-strong` |
+| Development | `/O2`, `/Zi` |
+| Profile | `/O2`, `/Zi`, `/Oy-` |
+| Shipping | `/O2`, `/GL` (LTO), `/Gw`, `-flto=thin` |
 
 ### Clang
 
