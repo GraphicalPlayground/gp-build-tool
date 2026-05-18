@@ -153,7 +153,7 @@ gpbt_startTestSection("Properties: Scoped Properties")
 gpbt_endTestSection()
 
 gpbt_startTestSection("Properties: Scoped Property Set and Get")
-  # No active scope — scoped get returns empty
+  # No active scope, scoped get returns empty
   gpbt_getScopedProperty("FOO" result)
   gpbt_assertEqual("${result}" "" "Expected unset scoped property with no active scope to return empty")
 
@@ -167,7 +167,7 @@ gpbt_startTestSection("Properties: Scoped Property Set and Get")
   gpbt_getScopedProperty("UNSET_KEY" result)
   gpbt_assertEqual("${result}" "" "Expected an unset scoped key to return empty")
 
-  # Scoped property is isolated — not visible from a different scope
+  # Scoped property is isolated, not visible from a different scope
   gpbt_pushScope("ScopedPropB")
   gpbt_getScopedProperty("FOO" result)
   gpbt_assertEqual("${result}" "" "Expected FOO from ScopedPropA to not be visible in ScopedPropB")

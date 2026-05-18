@@ -109,7 +109,7 @@ function(gpbt_applyCompileFlags)
     "$<$<CONFIG:Profile>:-g>"
     "$<$<CONFIG:Profile>:-fno-omit-frame-pointer>"
     "$<$<CONFIG:Profile>:-fno-inline-functions>"
-    # PGO instrumentation — wire via gpbt_getScopedProperty when a .profdata file is present:
+    # PGO instrumentation, wire via gpbt_getScopedProperty when a .profdata file is present:
     # "$<$<AND:$<CONFIG:Profile>,$<BOOL:${enablePGOInstrument}>>:-fprofile-instr-generate>"
 
     # Shipping
@@ -124,19 +124,19 @@ function(gpbt_applyCompileFlags)
     "$<$<CONFIG:Shipping>:-fno-stack-protector>"
     "$<$<CONFIG:Shipping>:-fno-unwind-tables>"
     "$<$<CONFIG:Shipping>:-fno-asynchronous-unwind-tables>"
-    # PGO use — wire via gpbt_getScopedProperty if a .profdata file is present:
+    # PGO use, wire via gpbt_getScopedProperty if a .profdata file is present:
     # "$<$<AND:$<CONFIG:Shipping>,$<BOOL:${enablePGOUse}>>:-fprofile-instr-use=${GP_PGO_PROFILE_PATH}>"
   )
 
   # Preprocessor definitions are routed through compile_definitions (not compile_options) so
   # they are visible to CMake's definition management and IDE generators.
   gpbt_appendScopedProperty(_targetPrivateCompileDefinitions
-    # Debug — libc++ bounds checking (Clang's stdlib)
+    # Debug, libc++ bounds checking (Clang's stdlib)
     "$<$<CONFIG:Debug>:DEBUG>"
     "$<$<CONFIG:Debug>:_DEBUG>"
     "$<$<CONFIG:Debug>:_LIBCPP_DEBUG=1>"
 
-    # Development / Profile / Shipping — disable assert guards
+    # Development / Profile / Shipping, disable assert guards
     "$<$<CONFIG:Development>:NDEBUG>"
     "$<$<CONFIG:Profile>:NDEBUG>"
     "$<$<CONFIG:Profile>:GPBT_PROFILE=1>"

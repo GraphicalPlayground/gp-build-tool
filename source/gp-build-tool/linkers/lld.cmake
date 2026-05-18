@@ -11,7 +11,7 @@ include(gp-build-tool/linkers/default)
 # Applies to: Clang + lld on Linux/Android (selected via -fuse-ld=lld in clang.cmake).
 # lld is required for ThinLTO (-flto=thin) and -fwhole-program-vtables.
 #
-# Flag contract (ELF targets — Linux, Android)
+# Flag contract (ELF targets, Linux, Android)
 #   --gc-sections          – prune unreferenced code/data sections (Shipping)
 #   -O3                    – link-time optimization level (Shipping)
 #   --as-needed            – only pull in libraries with unresolved references (Shipping)

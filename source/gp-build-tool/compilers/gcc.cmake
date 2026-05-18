@@ -108,13 +108,13 @@ function(gpbt_applyCompileFlags)
   # Preprocessor definitions are routed through compile_definitions (not compile_options) so
   # they are visible to CMake's definition management and IDE generators.
   gpbt_appendScopedProperty(_targetPrivateCompileDefinitions
-    # Debug — libstdc++ bounds and iterator validity checks
+    # Debug, libstdc++ bounds and iterator validity checks
     "$<$<CONFIG:Debug>:DEBUG>"
     "$<$<CONFIG:Debug>:_DEBUG>"
     "$<$<CONFIG:Debug>:_GLIBCXX_DEBUG>"
     "$<$<CONFIG:Debug>:_GLIBCXX_DEBUG_PEDANTIC>"
 
-    # Development / Profile / Shipping — disable assert guards
+    # Development / Profile / Shipping, disable assert guards
     "$<$<CONFIG:Development>:NDEBUG>"
     "$<$<CONFIG:Profile>:NDEBUG>"
     "$<$<CONFIG:Profile>:GPBT_PROFILE=1>"

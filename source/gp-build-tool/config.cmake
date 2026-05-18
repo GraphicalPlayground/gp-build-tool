@@ -39,3 +39,8 @@ set(GPBT_INSTALL_EXPORT_NAME "GPTargets" CACHE STRING "Name of the CMake install
 # Render with: dot -Tsvg <file> -o <file>.svg
 option(GPBT_EXPORT_DEPENDENCY_GRAPH "Write a Graphviz DOT file of the target dependency graph after configuration" FALSE)
 set(GPBT_DEPENDENCY_GRAPH_FILE "${CMAKE_BINARY_DIR}/gpbt_dependency_graph.dot" CACHE FILEPATH "Output path for the dependency graph DOT file")
+
+# Thirdparty package management
+set(GPBT_THIRDPARTY_MODE "AUTO" CACHE STRING "Thirdparty resolution mode: AUTO (binary-first with source fallback), SOURCE (always build from source), BINARY (prebuilt only)")
+set_property(CACHE GPBT_THIRDPARTY_MODE PROPERTY STRINGS AUTO SOURCE BINARY)
+option(GPBT_THIRDPARTY_UPDATES_DISCONNECTED "Skip network checks for already-fetched thirdparty packages (faster reconfigure)" ON)

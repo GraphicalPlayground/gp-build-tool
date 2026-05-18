@@ -12,7 +12,7 @@ gpbt_startTestSection("Target Registration: basic module")
   gpbt_startBuildTool()
 
   # A CMakeLists.txt path is needed to give the target a location.
-  # We use CMAKE_CURRENT_LIST_DIR as a stand-in — any existing directory works.
+  # We use CMAKE_CURRENT_LIST_DIR as a stand-in, any existing directory works.
   gpbt_startTarget("module" "mymodule" "${CMAKE_CURRENT_LIST_DIR}")
   gpbt_endTarget()
 
@@ -76,7 +76,7 @@ gpbt_startTestSection("Target Registration: name with slash becomes underscore")
   if(_idx GREATER_EQUAL 0)
     gpbt_assertSuccess("'rhi/d3d12' clean name is 'rhi_d3d12' in GPBT_TARGETS")
   else()
-    gpbt_assertFail("'rhi/d3d12' clean name not found — GPBT_TARGETS: ${allTargets}")
+    gpbt_assertFail("'rhi/d3d12' clean name not found, GPBT_TARGETS: ${allTargets}")
   endif()
 
   gpbt_testGetTargetProperty("rhi_d3d12" _targetName _rawName)
@@ -129,14 +129,14 @@ gpbt_startTestSection("Target Registration: gpbt_startBuildTool resets GPBT_TARG
   gpbt_endTarget()
   gpbt_testResetBuildTool()
 
-  # Second run — should NOT see 'alpha' from the first run
+  # Second run, should NOT see 'alpha' from the first run
   gpbt_startBuildTool()
   gpbt_getProperty(GPBT_TARGETS allTargets)
   list(FIND allTargets "alpha" _idx)
   if(_idx LESS 0)
     gpbt_assertSuccess("GPBT_TARGETS was reset on second gpbt_startBuildTool call")
   else()
-    gpbt_assertFail("GPBT_TARGETS was NOT reset — 'alpha' leaked from previous run")
+    gpbt_assertFail("GPBT_TARGETS was NOT reset, 'alpha' leaked from previous run")
   endif()
   gpbt_testResetBuildTool()
 gpbt_endTestSection()

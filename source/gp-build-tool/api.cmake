@@ -14,6 +14,7 @@ include(gp-build-tool/targets/api/link-options)
 include(gp-build-tool/targets/api/metadata)
 include(gp-build-tool/targets/api/options)
 include(gp-build-tool/targets/api/sources)
+include(gp-build-tool/thirdparty/core)
 
 # @brief Apply the default policies and configurations for Graphical Playground targets.
 macro(gpApplyGraphicalPlaygroundDefaultPolicy)
@@ -140,8 +141,8 @@ endmacro()
 
 # @brief Add a dependency to the current target.
 # @param[in] visibility PUBLIC | PRIVATE | INTERNAL | DYNAMIC
-#   INTERNAL  — like PRIVATE but headers are also accessible to other modules in the graph.
-#   DYNAMIC   — affects build order only; the dependency is loaded at runtime via dlopen/LoadLibrary.
+#   INTERNAL  - like PRIVATE but headers are also accessible to other modules in the graph.
+#   DYNAMIC   - affects build order only; the dependency is loaded at runtime via dlopen/LoadLibrary.
 # @param[in] ... Target name(s). Internal GP targets are resolved by name; others pass through.
 macro(gpAddDependency visibility)
   gpbt_addDependency("${visibility}" ${ARGN})
@@ -251,4 +252,72 @@ endmacro()
 # @param[in] resourceFile Path to the resource file (absolute or relative).
 macro(gpAddResourceFile resourceFile)
   gpbt_addResourceFile("${resourceFile}")
+endmacro()
+
+# Thirdparty Package Management
+
+# @brief Open a thirdparty package definition.
+# @param[in] packageName  Name of the package (e.g. "sdl2", "physx", "nlohmann-json").
+# @param[in] VERSION      Version string (e.g. "2.30.3"). Used for logging and cache keys.
+# @remarks Must be paired with gpEndThirdparty(). Call from thirdparty/<name>/CMakeLists.txt.
+macro(gpStartThirdparty packageName)
+  gpbt_startThirdparty("${packageName}" ${ARGN})
+endmacro()
+
+# @brief Close the current thirdparty package definition.
+macro(gpEndThirdparty)
+  gpbt_endThirdparty()
+endmacro()
+
+# @brief Declare the source archive for this package (no git, no submodules).
+# @param[in] URL     Archive URL (tar.gz or zip).
+# @param[in] HASH    CMake hash string (e.g. "SHA256=abc123...").
+# @param[in] TARGET  (Optional) CMake target name the subproject exports. Defaults to "<name>::<name>".
+macro(gpThirdpartySource)
+  gpbt_thirdpartySource(${ARGN})
+endmacro()
+
+# @brief Declare a prebuilt binary archive for a specific platform / compiler combination.
+# @param[in] PLATFORMS  GP platform tokens to match: Windows | macOS | iOS | Android | Linux | FreeBSD
+# @param[in] COMPILERS  GP compiler tokens to match: MSVC | Clang | GCC  (empty = any)
+# @param[in] URL        Download URL of the prebuilt archive.
+# @param[in] HASH       CMake hash string (e.g. "SHA256=abc123...").
+macro(gpThirdpartyBinary)
+  gpbt_thirdpartyBinary(${ARGN})
+endmacro()
+
+# @brief Declare that this package should be resolved from the host system.
+# @param[in] FIND_PACKAGE <name>   Use CMake find_package(). Combine with TARGET and COMPONENTS.
+# @param[in] TARGET <target>       Imported target name produced by find_package() (optional).
+# @param[in] COMPONENTS <comp...>  Components passed to find_package() (optional).
+# @param[in] FRAMEWORK <name...>   Apple system frameworks: creates -framework <name> link flags.
+# @param[in] WINDOWS_SDK LIBS <lib...>  Windows SDK libraries (d3d12, dxgi, d3dcompiler, ...).
+macro(gpThirdpartySystem)
+  gpbt_thirdpartySystem(${ARGN})
+endmacro()
+
+# @brief Restrict this package to specific platforms; silently skipped on all others.
+# @param[in] ... GP platform tokens: Windows | macOS | iOS | Android | Linux | FreeBSD
+macro(gpThirdpartyRequiresPlatforms)
+  gpbt_thirdpartyRequiresPlatforms(${ARGN})
+endmacro()
+
+# @brief Restrict this package to specific compilers; silently skipped on all others.
+# @param[in] ... GP compiler tokens: MSVC | Clang | GCC
+macro(gpThirdpartyRequiresCompilers)
+  gpbt_thirdpartyRequiresCompilers(${ARGN})
+endmacro()
+
+# @brief Pass extra CMake cache variables when building this package from source.
+# @param[in] ... KEY=VALUE pairs forwarded to the subproject's CMake configuration.
+macro(gpThirdpartySetCMakeArgs)
+  gpbt_thirdpartySetCMakeArgs(${ARGN})
+endmacro()
+
+# @brief Override the thirdparty resolution mode.
+# @param[in] mode  AUTO (binary-first) | SOURCE (always build from source) | BINARY (prebuilt only)
+# @remarks Inside a gpStartThirdparty block: applies only to that package.
+#          Outside any block: sets the project-wide default (all packages).
+macro(gpSetThirdpartyMode mode)
+  gpbt_setThirdpartyMode("${mode}")
 endmacro()
