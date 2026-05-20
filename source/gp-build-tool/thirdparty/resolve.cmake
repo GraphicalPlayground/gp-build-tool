@@ -143,7 +143,7 @@ function(gpbt_resolveBinaryPackage cleanName packageName binaryIndex outResolved
 
   set(_hashArg "")
   if(_hash)
-    set(_hashArg EXPECTED_HASH "${_hash}")
+    set(_hashArg URL_HASH "${_hash}")
   endif()
 
   FetchContent_Declare(
@@ -198,7 +198,7 @@ function(gpbt_resolveSourcePackage cleanName packageName outResolved)
 
   set(_hashArg "")
   if(_hash)
-    set(_hashArg EXPECTED_HASH "${_hash}")
+    set(_hashArg URL_HASH "${_hash}")
   endif()
 
   FetchContent_Declare(
