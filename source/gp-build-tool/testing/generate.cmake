@@ -92,7 +92,14 @@ function(gpbt_generateTestTarget cleanName)
     target_link_libraries(${_testExportName} PRIVATE "${GPBT_TEST_FRAMEWORK_CUSTOM_TARGET}")
   endif()
 
-  add_test(NAME "${_testExportName}" COMMAND ${_testExportName})
+  # Run the test from the directory that contains the executable.
+  # On Windows, the OS resolves DLLs from the executable's directory before consulting PATH,
+  # so this ensures the module-under-test's DLL is found without any manual PATH setup.
+  add_test(
+    NAME             "${_testExportName}"
+    COMMAND          ${_testExportName}
+    WORKING_DIRECTORY "$<TARGET_FILE_DIR:${_testExportName}>"
+  )
 
   gpbt_log(SUCCESS "Created test target '${_testExportName}' [${_framework}] for '${cleanName}'")
 endfunction()

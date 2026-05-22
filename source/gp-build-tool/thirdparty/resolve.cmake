@@ -166,9 +166,11 @@ endfunction()
 
 # Internal helper: walk a directory tree and append the error-suppression flag to every
 # compiled target (EXECUTABLE, STATIC/SHARED/MODULE/OBJECT_LIBRARY).
-# For MSVC / Clang-CL: /WX- disables /WX for that target specifically.
-# For GCC / Clang:    -Wno-error removes all warning-as-error promotion.
-# Both flags appear after the project-wide /WX or -Werror in the build command so they win.
+# Recursively silence ALL warnings on every compiled target under a directory.
+# /W0 (MSVC/Clang-CL) and -w (GCC/Clang) are the strongest suppression flags:
+# they disable every diagnostic category, not just error-promotion.
+# Appended as PRIVATE target_compile_options so they appear after any project-wide
+# /W4 or -Wall in the build command and therefore take precedence.
 function(gpbt_suppressStrictWarningsInDirectory dir)
   if(NOT IS_DIRECTORY "${dir}")
     return()
@@ -182,9 +184,9 @@ function(gpbt_suppressStrictWarningsInDirectory dir)
     get_target_property(_tgtType "${_tgt}" TYPE)
     if(_tgtType MATCHES "^(EXECUTABLE|STATIC_LIBRARY|SHARED_LIBRARY|MODULE_LIBRARY|OBJECT_LIBRARY)$")
       if(MSVC OR CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
-        target_compile_options("${_tgt}" PRIVATE /WX-)
+        target_compile_options("${_tgt}" PRIVATE /W0)
       else()
-        target_compile_options("${_tgt}" PRIVATE -Wno-error)
+        target_compile_options("${_tgt}" PRIVATE -w)
       endif()
     endif()
   endforeach()
@@ -240,17 +242,30 @@ function(gpbt_resolveSourcePackage cleanName packageName outResolved)
     ${_hashArg}
   )
 
+  # Packages that opted out of strict warnings must also be built as STATIC libraries.
+  # BUILD_SHARED_LIBS=ON is set globally by GPBT's defaulter and propagates into every
+  # FetchContent subproject, turning test framework libraries into DLLs.  Those DLLs then
+  # fail to load at test-run time because Windows resolves DLLs from the executable's
+  # directory first, and the build directory layout doesn't guarantee co-location.
+  # Forcing static here avoids the DLL entirely; the save/restore ensures subsequent
+  # packages are not affected.
+  if(_stripStrictWarnings)
+    set(_gpbt_saved_BUILD_SHARED_LIBS "${BUILD_SHARED_LIBS}")
+    set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+  endif()
+
   FetchContent_MakeAvailable(${_fcName})
 
-  # After the subproject is configured its targets are live.  If the package requested
-  # strict-warning suppression, walk every compiled target in the subproject's directory
-  # tree and append /WX- (Clang-CL/MSVC) or -Wno-error (GCC/Clang).  These flags appear
-  # after the project-wide /WX / -Werror in the final compile command and therefore win,
-  # without touching CMAKE_CXX_FLAGS or any other global state.
   if(_stripStrictWarnings)
+    # Restore BUILD_SHARED_LIBS for all packages that come after this one.
+    set(BUILD_SHARED_LIBS "${_gpbt_saved_BUILD_SHARED_LIBS}" CACHE BOOL "" FORCE)
+
+    # Walk every compiled target in the subproject tree and silence all warnings.
+    # /W0 (MSVC/Clang-CL) and -w (GCC/Clang) are the strongest suppression flags and
+    # override any project-wide /W4 or -Wall because they appear last in the command.
     string(TOLOWER "${_fcName}" _fcNameLower)
     gpbt_suppressStrictWarningsInDirectory("${${_fcNameLower}_SOURCE_DIR}")
-    gpbt_log(VERBOSE "  [SOURCE] ${packageName}: appended /WX- or -Wno-error to subproject targets")
+    gpbt_log(VERBOSE "  [SOURCE] ${packageName}: forced static build and silenced all warnings")
   endif()
 
   # Wrap the subproject's exported target under the gp::thirdparty:: namespace
