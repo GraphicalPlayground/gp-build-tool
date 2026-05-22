@@ -16,7 +16,7 @@ include(gp-build-tool/testing/generate)
 #          already declared its own version of that package.
 #
 #          Logging: always emits an INFO summary so the active framework is visible in the
-#          configure output — no GPBT_LOG_VERBOSE_ENABLED required.
+#          configure output, no GPBT_LOG_VERBOSE_ENABLED required.
 #
 #          User-override: declaring gpStartThirdparty("googletest") or
 #          gpStartThirdparty("catch2") anywhere before gpEndBuildTool() causes the built-in
@@ -55,7 +55,7 @@ function(gpbt_initTestingSystem)
     endif()
 
     if(_effectiveFW STREQUAL "NONE" OR NOT _effectiveFW)
-      gpbt_log(WARNING "Target '${_name}' called gpEnableTests() but GPBT_TEST_FRAMEWORK is NONE and no per-target FRAMEWORK was specified — test target will not be generated")
+      gpbt_log(WARNING "Target '${_name}' called gpEnableTests() but GPBT_TEST_FRAMEWORK is NONE and no per-target FRAMEWORK was specified, test target will not be generated")
       continue()
     endif()
 
@@ -64,7 +64,7 @@ function(gpbt_initTestingSystem)
   endforeach()
 
   if(_testTargetCount EQUAL 0)
-    gpbt_log(INFO "No targets called gpEnableTests() — test framework not registered")
+    gpbt_log(INFO "No targets called gpEnableTests(), test framework not registered")
     return()
   endif()
 

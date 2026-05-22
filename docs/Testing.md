@@ -23,18 +23,34 @@ Test executables are built alongside the rest of the project, no separate CMake 
 
 ## Selecting a test framework
 
-Set `GPBT_TEST_FRAMEWORK` before `gpEndBuildTool()` to choose which framework all test targets will use.
+### Project-wide default
+
+The active framework is controlled by the `GPBT_TEST_FRAMEWORK` cache variable.
 
 | Value | Behaviour |
 | --- | --- |
-| `NONE` (default) | `gpEnableTests()` is a no-op; no framework is fetched. |
+| `NONE` | `gpEnableTests()` is a no-op; no framework is fetched. This is the default for projects that do not call `gpApplyGraphicalPlaygroundDefaultPolicy()`. |
 | `GOOGLETEST` | GoogleTest 1.17.0 is fetched and built from source. Test executables link `GTest::gtest_main`. |
 | `CATCH2` | Catch2 3.15.0 is fetched and built from source. Test executables link `Catch2::Catch2WithMain`. |
 | `CUSTOM` | Link against a target you provide. Set `GPBT_TEST_FRAMEWORK_CUSTOM_TARGET` to its name. |
 
 Both built-in frameworks use the `*WithMain` / `*_main` variant, so test files do not need to define `main()`.
 
-### Setting the framework in CMakeLists.txt
+### Using gpApplyGraphicalPlaygroundDefaultPolicy
+
+Calling `gpApplyGraphicalPlaygroundDefaultPolicy()` automatically promotes the framework to `GOOGLETEST` when the project has not provided an explicit override:
+
+```cmake
+gpApplyGraphicalPlaygroundDefaultPolicy()  # sets GPBT_TEST_FRAMEWORK=GOOGLETEST if not already set
+
+gpStartBuildTool()
+  gpBuildToolAutoScan(thirdparty source)
+gpEndBuildTool()
+```
+
+An explicit `-DGPBT_TEST_FRAMEWORK=CATCH2` on the CMake command line always wins over the policy default.
+
+### Setting it manually
 
 ```cmake
 set(GPBT_TEST_FRAMEWORK "GOOGLETEST" CACHE STRING "")
@@ -54,7 +70,9 @@ cmake -S . -B build -DGPBT_TEST_FRAMEWORK=CATCH2
 
 ## Enabling tests for a target
 
-Call `gpEnableTests()` inside any `gpStartModule` / `gpStartExecutable` / `gpStartPlugin` block:
+### Using the global default
+
+Call `gpEnableTests()` inside any `gpStartModule` / `gpStartExecutable` / `gpStartPlugin` block to opt in using whichever framework `GPBT_TEST_FRAMEWORK` is set to:
 
 ```cmake
 gpStartModule("runtime/core")
@@ -62,7 +80,29 @@ gpStartModule("runtime/core")
 gpEndModule()
 ```
 
-Place test source files in a `tests/` subdirectory next to the module's `CMakeLists.txt`:
+### Per-target framework override
+
+Pass `FRAMEWORK <name>` to override the global setting for a specific target. This is useful when different modules in the same project use different testing styles:
+
+```cmake
+gpStartModule("runtime/core")
+  gpEnableTests(FRAMEWORK GOOGLETEST)
+gpEndModule()
+
+gpStartModule("runtime/physics")
+  gpEnableTests(FRAMEWORK CATCH2)
+gpEndModule()
+```
+
+When targets use different frameworks, GPBT registers and builds both. The resolution is:
+
+```text
+per-target FRAMEWORK argument  →  global GPBT_TEST_FRAMEWORK
+```
+
+### Test source directory layout
+
+Place test source files in a `tests/` subdirectory next to the target's `CMakeLists.txt`:
 
 ```text
 source/
@@ -74,10 +114,9 @@ source/
       private/
         MathUtils.cpp
       tests/
-        MathUtils.test.cpp ← test file, auto-discovered
+        MathUtils.test.cpp ← auto-discovered
+        EdgeCases.test.cpp ← all .cpp/.cxx/.cc/.c files are included
 ```
-
-All `.cpp`, `.cxx`, `.cc`, and `.c` files under `tests/` are compiled into the test executable.
 
 ---
 
@@ -151,7 +190,7 @@ ctest --test-dir build -R "runtime_core" --output-on-failure
 
 ## Using a custom test framework
 
-Set `GPBT_TEST_FRAMEWORK=CUSTOM` and provide the target name:
+Set `GPBT_TEST_FRAMEWORK=CUSTOM` globally, or pass `FRAMEWORK CUSTOM` per-target, and provide the target name:
 
 ```cmake
 # Bring your own framework target (e.g., via find_package or gpStartThirdparty)
@@ -165,20 +204,20 @@ gpStartBuildTool()
 gpEndBuildTool()
 ```
 
-The custom target must be a valid CMake target by the time `gpEndBuildTool()` runs the CONFIGURATION phase.
+The custom target must be a valid CMake target before CONFIGURATION phase starts (i.e., resolved before `gpEndBuildTool()` runs).
 
 ---
 
 ## Overriding the built-in framework version
 
-If you need a different version of GoogleTest or Catch2 than the ones GPBT ships, declare the package yourself before `gpEndBuildTool()`. GPBT detects the name collision and skips its built-in registration.
+If you need a different version of GoogleTest or Catch2, declare the package yourself before `gpEndBuildTool()`. GPBT detects the name and skips its built-in registration, using your version instead.
 
 ```cmake
 # engine/thirdparty/googletest/CMakeLists.txt
 gpStartThirdparty("googletest" VERSION "1.15.2")
     gpThirdpartySource(
-        URL  "https://github.com/google/googletest/archive/refs/tags/v1.15.2.tar.gz"
-        HASH "SHA256=<your-hash>"
+        URL    "https://github.com/google/googletest/archive/refs/tags/v1.15.2.tar.gz"
+        HASH   "SHA256=<your-hash>"
         TARGET "GTest::gtest_main"
     )
     gpThirdpartySetCMakeArgs(
@@ -188,7 +227,7 @@ gpStartThirdparty("googletest" VERSION "1.15.2")
 gpEndThirdparty()
 ```
 
-Then in the root CMakeLists.txt:
+Then in the root `CMakeLists.txt`:
 
 ```cmake
 set(GPBT_TEST_FRAMEWORK "GOOGLETEST" CACHE STRING "")
