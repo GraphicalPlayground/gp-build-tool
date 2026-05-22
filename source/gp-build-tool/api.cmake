@@ -39,6 +39,12 @@ macro(gpApplyGraphicalPlaygroundDefaultPolicy)
 
   # Enable Position Independent Code (PIC) for static libraries to allow linking into shared libraries on all platforms
   set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+  # Set testing framework to GoogleTest by default; can be overridden by projects or on the command line.
+  if(NOT DEFINED GPBT_TEST_FRAMEWORK)
+    set(GPBT_TEST_FRAMEWORK "GOOGLETEST" CACHE STRING "Testing framework to use: GOOGLETEST | CATCH2 | CUSTOM | NONE")
+    set_property(CACHE GPBT_TEST_FRAMEWORK PROPERTY STRINGS "GOOGLETEST" "CATCH2" "CUSTOM" "NONE")
+  endif()
 endmacro()
 
 # @brief Start the build tool definition. This function should be called at the beginning of the CMakeLists.txt file to
