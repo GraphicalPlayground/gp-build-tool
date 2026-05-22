@@ -56,12 +56,26 @@ function(gpbt_setShared)
   gpbt_log(VERBOSE "Target forced to build as SHARED library")
 endfunction()
 
-# @brief Enable the test suite for the current target (reserved for future per-target test integration).
+# @brief Enable the test suite for the current target.
+# @param[in] FRAMEWORK (optional) Per-target framework override: GOOGLETEST | CATCH2 | CUSTOM.
+#   If omitted the global GPBT_TEST_FRAMEWORK is used.
+# @remarks Sources are auto-discovered from tests/ next to the target's CMakeLists.txt.
 function(gpbt_enableTests)
   gpbt_checkInTargetDefinition("gpbt_enableTests")
   gpbt_runOnlyDuringPhase("REGISTRATION")
+
+  cmake_parse_arguments(_ET "" "FRAMEWORK" "" ${ARGN})
+
   gpbt_setScopedProperty(_targetEnableTests TRUE)
-  gpbt_log(VERBOSE "Tests enabled for target")
+
+  if(_ET_FRAMEWORK)
+    string(TOUPPER "${_ET_FRAMEWORK}" _normalizedFramework)
+    gpbt_setScopedProperty(_targetTestFramework "${_normalizedFramework}")
+    gpbt_log(VERBOSE "Tests enabled for target with per-target framework: ${_normalizedFramework}")
+  else()
+    gpbt_setScopedProperty(_targetTestFramework "")
+    gpbt_log(VERBOSE "Tests enabled for target (inherits global GPBT_TEST_FRAMEWORK)")
+  endif()
 endfunction()
 
 # @brief Enable benchmarks for the current target (reserved for future per-target benchmark integration).

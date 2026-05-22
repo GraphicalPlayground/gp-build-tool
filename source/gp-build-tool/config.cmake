@@ -53,6 +53,12 @@ option(GPBT_THIRDPARTY_UPDATES_DISCONNECTED "Skip network checks for already-fet
 #
 # User override: declaring gpStartThirdparty("googletest") or gpStartThirdparty("catch2") before
 # gpEndBuildTool() makes GPBT skip the built-in version and use your declared package instead.
-set(GPBT_TEST_FRAMEWORK "NONE" CACHE STRING "Test framework used by gpEnableTests(): NONE | GOOGLETEST | CATCH2 | CUSTOM")
+# GPBT_TEST_FRAMEWORK default is intentionally set to NONE here so that projects
+# that do not call gpApplyGraphicalPlaygroundDefaultPolicy() stay opt-out.
+# gpApplyGraphicalPlaygroundDefaultPolicy() promotes it to GOOGLETEST when the
+# user has not provided an explicit -DGPBT_TEST_FRAMEWORK=<value> override.
+if(NOT DEFINED CACHE{GPBT_TEST_FRAMEWORK})
+  set(GPBT_TEST_FRAMEWORK "NONE" CACHE STRING "Test framework used by gpEnableTests(): NONE | GOOGLETEST | CATCH2 | CUSTOM")
+endif()
 set_property(CACHE GPBT_TEST_FRAMEWORK PROPERTY STRINGS NONE GOOGLETEST CATCH2 CUSTOM)
 set(GPBT_TEST_FRAMEWORK_CUSTOM_TARGET "" CACHE STRING "CMake target to link test executables against when GPBT_TEST_FRAMEWORK=CUSTOM")

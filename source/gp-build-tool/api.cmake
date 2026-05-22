@@ -40,8 +40,13 @@ macro(gpApplyGraphicalPlaygroundDefaultPolicy)
   # Enable Position Independent Code (PIC) for static libraries to allow linking into shared libraries on all platforms
   set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-  # Set testing framework to GoogleTest by default; can be overridden by projects or on the command line.
-  set(GPBT_TEST_FRAMEWORK "GOOGLETEST" CACHE STRING "Testing framework to use: GOOGLETEST | CATCH2 | CUSTOM | NONE")
+  # Promote GPBT_TEST_FRAMEWORK from NONE (the config.cmake sentinel) to GOOGLETEST
+  # as the recommended GP default.  Only changes the value when it is still NONE,
+  # which means: not overridden by -DGPBT_TEST_FRAMEWORK=<x> on the CLI and not
+  # already set to something else by project code that runs before this macro.
+  if(GPBT_TEST_FRAMEWORK STREQUAL "NONE")
+    set(GPBT_TEST_FRAMEWORK "GOOGLETEST" CACHE STRING "Test framework used by gpEnableTests(): NONE | GOOGLETEST | CATCH2 | CUSTOM" FORCE)
+  endif()
 endmacro()
 
 # @brief Start the build tool definition. This function should be called at the beginning of the CMakeLists.txt file to
@@ -206,9 +211,11 @@ macro(gpSetShared)
   gpbt_setShared()
 endmacro()
 
-# @brief Enable per-target test infrastructure (reserved).
+# @brief Enable tests for the current target.
+# @param[in] FRAMEWORK (optional) Per-target override: GOOGLETEST | CATCH2 | CUSTOM.
+#   If omitted the global GPBT_TEST_FRAMEWORK setting is used.
 macro(gpEnableTests)
-  gpbt_enableTests()
+  gpbt_enableTests(${ARGN})
 endmacro()
 
 # @brief Enable per-target benchmark infrastructure (reserved).
