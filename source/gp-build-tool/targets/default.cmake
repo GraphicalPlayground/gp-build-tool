@@ -289,6 +289,13 @@ function(gpbt_endTarget)
     gpbt_log(FATAL "Unknown target type: ${targetType}")
   endif()
 
+  # Generate a companion test executable if the target opted in via gpEnableTests().
+  gpbt_getScopedProperty(_targetEnableTests targetEnableTests)
+  gpbt_getScopedProperty(_targetCleanName   targetCleanName)
+  if(targetEnableTests)
+    gpbt_generateTestTarget("${targetCleanName}")
+  endif()
+
   gpbt_popScope()
   gpbt_setProperty(GPBT_IS_IN_TARGET_DEFINITION FALSE)
 endfunction()

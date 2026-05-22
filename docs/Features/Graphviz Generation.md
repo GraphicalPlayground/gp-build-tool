@@ -66,5 +66,5 @@ The dependency graph is exported during the configuration phase, before any targ
 
 ```bash
 cmake -S . -B build -DGPBT_EXPORT_DEPENDENCY_GRAPH=ON
-# The DOT file is written as soon as cmake finishes — no build step needed
+# The DOT file is written as soon as cmake finishes, no build step needed
 ```

@@ -15,6 +15,7 @@ include(gp-build-tool/targets/api/metadata)
 include(gp-build-tool/targets/api/options)
 include(gp-build-tool/targets/api/sources)
 include(gp-build-tool/thirdparty/core)
+include(gp-build-tool/testing/core)
 
 # @brief Apply the default policies and configurations for Graphical Playground targets.
 macro(gpApplyGraphicalPlaygroundDefaultPolicy)

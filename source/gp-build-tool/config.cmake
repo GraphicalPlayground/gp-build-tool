@@ -44,3 +44,15 @@ set(GPBT_DEPENDENCY_GRAPH_FILE "${CMAKE_BINARY_DIR}/gpbt_dependency_graph.dot" C
 set(GPBT_THIRDPARTY_MODE "AUTO" CACHE STRING "Thirdparty resolution mode: AUTO (binary-first with source fallback), SOURCE (always build from source), BINARY (prebuilt only)")
 set_property(CACHE GPBT_THIRDPARTY_MODE PROPERTY STRINGS AUTO SOURCE BINARY)
 option(GPBT_THIRDPARTY_UPDATES_DISCONNECTED "Skip network checks for already-fetched thirdparty packages (faster reconfigure)" ON)
+
+# Test framework integration
+# NONE       - gpEnableTests() is a no-op; no framework is fetched.
+# GOOGLETEST - GoogleTest 1.17.0 is fetched via the thirdparty system; test executables link GTest::gtest_main.
+# CATCH2     - Catch2 3.15.0 is fetched via the thirdparty system; test executables link Catch2::Catch2WithMain.
+# CUSTOM     - Use a CMake target you provide; set GPBT_TEST_FRAMEWORK_CUSTOM_TARGET to its name.
+#
+# User override: declaring gpStartThirdparty("googletest") or gpStartThirdparty("catch2") before
+# gpEndBuildTool() makes GPBT skip the built-in version and use your declared package instead.
+set(GPBT_TEST_FRAMEWORK "NONE" CACHE STRING "Test framework used by gpEnableTests(): NONE | GOOGLETEST | CATCH2 | CUSTOM")
+set_property(CACHE GPBT_TEST_FRAMEWORK PROPERTY STRINGS NONE GOOGLETEST CATCH2 CUSTOM)
+set(GPBT_TEST_FRAMEWORK_CUSTOM_TARGET "" CACHE STRING "CMake target to link test executables against when GPBT_TEST_FRAMEWORK=CUSTOM")

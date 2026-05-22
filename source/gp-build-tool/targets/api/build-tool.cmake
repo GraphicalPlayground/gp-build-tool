@@ -36,6 +36,7 @@ function(gpbt_endBuildTool)
   gpbt_setProperty(GPBT_CURRENT_PHASE "CONFIGURATION")
   gpbt_logSection("Starting CONFIGURATION phase")
 
+  gpbt_initTestingSystem()
   gpbt_resolveThirdpartyPackages()
 
   gpbt_log(INFO "Sorting registered targets...")

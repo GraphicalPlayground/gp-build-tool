@@ -46,7 +46,7 @@ Because registration always precedes configuration, you can reference any target
 
 ```cmake
 gpStartModule("rhi/base")
-  gpAddDependency(DYNAMIC rhi/d3d12)  # rhi/d3d12 has not been declared yet — this is fine
+  gpAddDependency(DYNAMIC rhi/d3d12)  # rhi/d3d12 has not been declared yet, this is fine
 gpEndModule()
 ```
 
