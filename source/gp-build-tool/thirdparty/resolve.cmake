@@ -164,6 +164,37 @@ function(gpbt_resolveBinaryPackage cleanName packageName binaryIndex outResolved
   set(${outResolved} TRUE PARENT_SCOPE)
 endfunction()
 
+# Internal helper: walk a directory tree and append the error-suppression flag to every
+# compiled target (EXECUTABLE, STATIC/SHARED/MODULE/OBJECT_LIBRARY).
+# For MSVC / Clang-CL: /WX- disables /WX for that target specifically.
+# For GCC / Clang:    -Wno-error removes all warning-as-error promotion.
+# Both flags appear after the project-wide /WX or -Werror in the build command so they win.
+function(gpbt_suppressStrictWarningsInDirectory dir)
+  if(NOT IS_DIRECTORY "${dir}")
+    return()
+  endif()
+
+  get_directory_property(_dirTargets DIRECTORY "${dir}" BUILDSYSTEM_TARGETS)
+  foreach(_tgt IN LISTS _dirTargets)
+    if(NOT TARGET "${_tgt}")
+      continue()
+    endif()
+    get_target_property(_tgtType "${_tgt}" TYPE)
+    if(_tgtType MATCHES "^(EXECUTABLE|STATIC_LIBRARY|SHARED_LIBRARY|MODULE_LIBRARY|OBJECT_LIBRARY)$")
+      if(MSVC OR CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+        target_compile_options("${_tgt}" PRIVATE /WX-)
+      else()
+        target_compile_options("${_tgt}" PRIVATE -Wno-error)
+      endif()
+    endif()
+  endforeach()
+
+  get_directory_property(_subdirs DIRECTORY "${dir}" SUBDIRECTORIES)
+  foreach(_sub IN LISTS _subdirs)
+    gpbt_suppressStrictWarningsInDirectory("${_sub}")
+  endforeach()
+endfunction()
+
 # Internal: resolve a package by building it from source via FetchContent.
 # Sets outResolved to TRUE in PARENT_SCOPE if a target was created.
 function(gpbt_resolveSourcePackage cleanName packageName outResolved)
@@ -209,24 +240,18 @@ function(gpbt_resolveSourcePackage cleanName packageName outResolved)
     ${_hashArg}
   )
 
-  # If the package opted out of strict warnings, shadow CMAKE_CXX_FLAGS and CMAKE_C_FLAGS
-  # locally to strip -Werror / /WX before the subproject configures.  Because this is a
-  # function(), the shadowed variables are automatically discarded on return, so the parent
-  # project's flags are unaffected.
-  if(_stripStrictWarnings)
-    foreach(_flagVar CMAKE_CXX_FLAGS CMAKE_C_FLAGS)
-      set(_stripped "${${_flagVar}}")
-      # MSVC / Clang-CL: /WX or -WX (but not /WX- which is the "disable" form)
-      string(REGEX REPLACE "(^|[ \t])(/WX|-WX)($|[ \t])" " " _stripped "${_stripped}")
-      # GCC / Clang: -Werror or -Werror=<specific-warning>
-      string(REGEX REPLACE "(^|[ \t])-Werror(=[^ \t]*)?([ \t]|$)" " " _stripped "${_stripped}")
-      string(STRIP "${_stripped}" _stripped)
-      set(${_flagVar} "${_stripped}")
-    endforeach()
-    gpbt_log(VERBOSE "  [SOURCE] ${packageName}: stripped -Werror/-WX from CMAKE_CXX/C_FLAGS for source build")
-  endif()
-
   FetchContent_MakeAvailable(${_fcName})
+
+  # After the subproject is configured its targets are live.  If the package requested
+  # strict-warning suppression, walk every compiled target in the subproject's directory
+  # tree and append /WX- (Clang-CL/MSVC) or -Wno-error (GCC/Clang).  These flags appear
+  # after the project-wide /WX / -Werror in the final compile command and therefore win,
+  # without touching CMAKE_CXX_FLAGS or any other global state.
+  if(_stripStrictWarnings)
+    string(TOLOWER "${_fcName}" _fcNameLower)
+    gpbt_suppressStrictWarningsInDirectory("${${_fcNameLower}_SOURCE_DIR}")
+    gpbt_log(VERBOSE "  [SOURCE] ${packageName}: appended /WX- or -Wno-error to subproject targets")
+  endif()
 
   # Wrap the subproject's exported target under the gp::thirdparty:: namespace
   if(NOT _sourceTarget)

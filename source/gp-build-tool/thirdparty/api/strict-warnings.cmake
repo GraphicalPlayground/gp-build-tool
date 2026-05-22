@@ -6,18 +6,19 @@ include_guard(GLOBAL)
 
 include(gp-build-tool/targets/utilities/target-props)
 
-# @brief Mark the current thirdparty package so that error-promotion flags are stripped
-#        from CMAKE_CXX_FLAGS / CMAKE_C_FLAGS before its source build runs.
-# @remarks Use this for any external package whose own source code does not cleanly
-#          compile under -Werror / /WX. The flags are stripped only for the duration of
-#          the FetchContent_MakeAvailable call and are automatically restored afterwards
-#          (CMake function-scope shadowing of the cache variable).
+# @brief Mark the current thirdparty package so that treat-warnings-as-errors is
+#        disabled for every compiled target the subproject creates.
+# @remarks Use this for any external package whose own sources do not compile cleanly
+#          when the project has /WX or -Werror in CMAKE_CXX_FLAGS.
 #
-#          Flags stripped when this is set:
-#            /WX           - MSVC / Clang-CL treat-warnings-as-errors
-#            -WX           - Clang-CL alternate form
-#            -Werror       - GCC / Clang treat-warnings-as-errors
-#            -Werror=<x>   - Clang specific-warning-as-error
+#          Mechanism: after FetchContent_MakeAvailable the resolver walks all compiled
+#          targets under the subproject's source directory (recursively through
+#          subdirectories) and appends:
+#            /WX-      on MSVC / Clang-CL  (disables treat-warnings-as-errors)
+#            -Wno-error on GCC / Clang     (same effect)
+#          These flags appear after the project-wide /WX or -Werror in the build command
+#          and therefore take precedence for the subproject targets only.  No global
+#          state is modified.
 function(gpbt_thirdpartyDisableStrictWarnings)
   gpbt_checkInThirdpartyDefinition("gpbt_thirdpartyDisableStrictWarnings")
   gpbt_setScopedProperty(_packageStripStrictWarnings TRUE)
