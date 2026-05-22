@@ -168,10 +168,11 @@ endfunction()
 # Sets outResolved to TRUE in PARENT_SCOPE if a target was created.
 function(gpbt_resolveSourcePackage cleanName packageName outResolved)
   gpbt_pushScope("thirdparty_${cleanName}")
-  gpbt_getScopedProperty(_packageSourceUrl _url)
-  gpbt_getScopedProperty(_packageSourceHash _hash)
-  gpbt_getScopedProperty(_packageSourceTarget _sourceTarget)
-  gpbt_getScopedProperty(_packageCmakeArgs _cmakeArgs)
+  gpbt_getScopedProperty(_packageSourceUrl           _url)
+  gpbt_getScopedProperty(_packageSourceHash          _hash)
+  gpbt_getScopedProperty(_packageSourceTarget        _sourceTarget)
+  gpbt_getScopedProperty(_packageCmakeArgs           _cmakeArgs)
+  gpbt_getScopedProperty(_packageStripStrictWarnings _stripStrictWarnings)
   gpbt_popScope()
 
   if(NOT _url)
@@ -207,6 +208,24 @@ function(gpbt_resolveSourcePackage cleanName packageName outResolved)
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     ${_hashArg}
   )
+
+  # If the package opted out of strict warnings, shadow CMAKE_CXX_FLAGS and CMAKE_C_FLAGS
+  # locally to strip -Werror / /WX before the subproject configures.  Because this is a
+  # function(), the shadowed variables are automatically discarded on return, so the parent
+  # project's flags are unaffected.
+  if(_stripStrictWarnings)
+    foreach(_flagVar CMAKE_CXX_FLAGS CMAKE_C_FLAGS)
+      set(_stripped "${${_flagVar}}")
+      # MSVC / Clang-CL: /WX or -WX (but not /WX- which is the "disable" form)
+      string(REGEX REPLACE "(^|[ \t])(/WX|-WX)($|[ \t])" " " _stripped "${_stripped}")
+      # GCC / Clang: -Werror or -Werror=<specific-warning>
+      string(REGEX REPLACE "(^|[ \t])-Werror(=[^ \t]*)?([ \t]|$)" " " _stripped "${_stripped}")
+      string(STRIP "${_stripped}" _stripped)
+      set(${_flagVar} "${_stripped}")
+    endforeach()
+    gpbt_log(VERBOSE "  [SOURCE] ${packageName}: stripped -Werror/-WX from CMAKE_CXX/C_FLAGS for source build")
+  endif()
+
   FetchContent_MakeAvailable(${_fcName})
 
   # Wrap the subproject's exported target under the gp::thirdparty:: namespace

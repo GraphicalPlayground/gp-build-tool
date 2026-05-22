@@ -30,5 +30,9 @@ function(gpbt_registerGoogleTestFramework)
       # GMock is not wired into the default test target; disable it to reduce build time.
       BUILD_GMOCK=OFF
     )
+    # GoogleTest 1.17.0 emits -Wcharacter-conversion under strict settings (char8_t implicit
+    # conversion in gtest-printers.h:528).  Strip -Werror/-WX for the source build so the
+    # warning does not become a hard error without affecting the rest of the project.
+    gpbt_thirdpartyDisableStrictWarnings()
   gpbt_endThirdparty()
 endfunction()

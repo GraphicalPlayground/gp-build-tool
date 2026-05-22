@@ -332,3 +332,12 @@ endmacro()
 macro(gpSetThirdpartyMode mode)
   gpbt_setThirdpartyMode("${mode}")
 endmacro()
+
+# @brief Strip error-promotion compiler flags from CMAKE_CXX_FLAGS / CMAKE_C_FLAGS
+#        before this package's source build runs.
+# @remarks Use for any upstream package whose sources trigger warnings under -Werror / /WX.
+#          Only affects packages resolved via gpThirdpartySource(); binary and system
+#          packages are unaffected.
+macro(gpThirdpartyDisableStrictWarnings)
+  gpbt_thirdpartyDisableStrictWarnings()
+endmacro()

@@ -16,6 +16,7 @@ include(gp-build-tool/thirdparty/api/system)
 include(gp-build-tool/thirdparty/api/requirements)
 include(gp-build-tool/thirdparty/api/cmake-args)
 include(gp-build-tool/thirdparty/api/mode)
+include(gp-build-tool/thirdparty/api/strict-warnings)
 include(gp-build-tool/thirdparty/resolve)
 
 # Detect and cache the current platform as a GP platform token.

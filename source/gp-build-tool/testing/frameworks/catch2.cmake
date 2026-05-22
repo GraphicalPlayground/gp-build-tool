@@ -29,5 +29,9 @@ function(gpbt_registerCatch2Framework)
       CATCH_BUILD_EXAMPLES=OFF
       CATCH_BUILD_TESTING=OFF
     )
+    # Suppress -Werror / /WX for the Catch2 source build.
+    # Catch2's headers and generated sources can trigger warnings under strict project flags
+    # (e.g. -Wsign-conversion, -Wold-style-cast on older compilers).
+    gpbt_thirdpartyDisableStrictWarnings()
   gpbt_endThirdparty()
 endfunction()
