@@ -62,6 +62,24 @@ function(gpbt_generateTestTarget cleanName)
     FOLDER          "tests/${_folder}"
   )
 
+  # Apply the same build-type compile definitions that GPBT sets on every registered target.
+  # These are PRIVATE on the module under test and therefore NOT propagated via linking,
+  # so the test executable must define them itself.
+  #
+  # Layer 1, GPBT build-type tokens (expected by any header that uses GP_BUILD_*).
+  target_compile_definitions(${_testExportName} PRIVATE
+    $<$<CONFIG:Debug>:GP_BUILD_DEBUG=1>
+    $<$<CONFIG:Development>:GP_BUILD_DEVELOPMENT=1>
+    $<$<CONFIG:Profile>:GP_BUILD_PROFILE=1>
+    $<$<CONFIG:Shipping>:GP_BUILD_SHIPPING=1>
+  )
+  # Layer 2, standard debug / release tokens so assert() and CRT behave correctly.
+  target_compile_definitions(${_testExportName} PRIVATE
+    $<$<CONFIG:Debug>:DEBUG>
+    $<$<CONFIG:Debug>:_DEBUG>
+    $<$<NOT:$<CONFIG:Debug>>:NDEBUG>
+  )
+
   # Tests have access to the module's PUBLIC interface (headers + transitive deps).
   target_link_libraries(${_testExportName} PRIVATE ${_mainExportName})
 
