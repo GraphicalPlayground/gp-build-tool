@@ -25,7 +25,7 @@ SYSTEM  ->  BINARY  ->  SOURCE
 
 1. **SYSTEM**: Use a package already present on the host (via `find_package()`, an Apple framework, or the Windows SDK). This is zero-download and zero-compile.
 2. **BINARY**: Download a prebuilt archive from a URL and create an INTERFACE target from its contents.
-3. **SOURCE**: Download a source archive and build the package using `FetchContent_MakeAvailable()`.
+3. **SOURCE / GIT**: Download a source archive or clone a Git repository and build the package using `FetchContent_MakeAvailable()`. `gpThirdpartySource()` and `gpThirdpartyGit()` both occupy this slot; only one can be declared per package.
 
 The active mode is controlled by `GPBT_THIRDPARTY_MODE` (default: `AUTO`). In `AUTO` mode, the first strategy that succeeds is used.
 
@@ -175,6 +175,104 @@ Always specify a `HASH` for production projects. The hash prevents supply-chain 
 
 :::warning
 Omitting `HASH` is allowed and will produce a warning, but the archive integrity will not be verified. Only omit it during initial development when you do not yet have a hash to use.
+:::
+
+### Git packages
+
+Use `gpThirdpartyGit()` to fetch a package directly from a Git repository. GPBT clones the repository with `FetchContent_Declare(GIT_REPOSITORY ...)` and then calls `FetchContent_MakeAvailable()` to configure it as a CMake subdirectory.
+
+#### Pinning to a commit hash
+
+A full commit hash gives the strongest reproducibility guarantee: the same 40-character SHA always produces the same source tree, regardless of force-pushes or tag mutations upstream.
+
+```cmake
+gpStartThirdparty("fmt" VERSION "10.2.1")
+  gpThirdpartySystem(
+    FIND_PACKAGE fmt
+    TARGET       fmt::fmt
+  )
+  gpThirdpartyGit(
+    REPOSITORY "https://github.com/fmtlib/fmt.git"
+    TAG        "e69e5f977d458f2650bb346dadf2ad30c5320281"
+    TARGET     "fmt::fmt"
+  )
+  gpThirdpartySetCMakeArgs(
+    FMT_TEST=OFF
+    FMT_DOC=OFF
+    FMT_INSTALL=OFF
+  )
+gpEndThirdparty()
+```
+
+#### Using a tag with shallow clone
+
+Specifying a tag name with `SHALLOW` downloads only the single commit at the tag tip, skipping all repository history. This is significantly faster for large repositories.
+
+```cmake
+gpStartThirdparty("fmt" VERSION "10.2.1")
+  gpThirdpartyGit(
+    REPOSITORY "https://github.com/fmtlib/fmt.git"
+    TAG        "v10.2.1"
+    SHALLOW
+    TARGET     "fmt::fmt"
+  )
+gpEndThirdparty()
+```
+
+:::warning
+Do not combine `SHALLOW` with a raw commit hash. Git shallow clones require a named ref (branch or tag) as the starting point. Using a bare commit SHA with `SHALLOW` will fail the clone step.
+:::
+
+#### Tracking a branch
+
+Branches are mutable and therefore not recommended for production builds. Prefer a commit hash or a release tag to guarantee reproducibility. If you do track a branch (for example during active upstream development), omit `SHALLOW` so CMake can resolve the branch to a specific commit:
+
+```cmake
+gpStartThirdparty("my-lib" VERSION "dev")
+  gpThirdpartyGit(
+    REPOSITORY "https://github.com/example/my-lib.git"
+    TAG        "main"
+    TARGET     "mylib::mylib"
+  )
+gpEndThirdparty()
+```
+
+### Applying a patch
+
+Both `gpThirdpartyGit()` and `gpThirdpartySource()` accept an optional `PATCH_COMMAND` argument. The command is run once in the source directory immediately after the initial checkout or extraction. Subsequent reconfigures reuse the cached source tree and do not reapply the patch.
+
+```cmake
+gpStartThirdparty("zlib" VERSION "1.3.1")
+  gpThirdpartyGit(
+    REPOSITORY   "https://github.com/madler/zlib.git"
+    TAG          "v1.3.1"
+    SHALLOW
+    TARGET       "zlib"
+    PATCH_COMMAND git apply ${CMAKE_CURRENT_LIST_DIR}/zlib-cmake-fix.patch
+  )
+gpEndThirdparty()
+```
+
+The same syntax works for `gpThirdpartySource()`:
+
+```cmake
+gpStartThirdparty("somelib" VERSION "1.0.0")
+  gpThirdpartySource(
+    URL          "https://example.com/somelib-1.0.0.tar.gz"
+    HASH         "SHA256=..."
+    PATCH_COMMAND git apply ${CMAKE_CURRENT_LIST_DIR}/somelib-fix.patch
+  )
+gpEndThirdparty()
+```
+
+`PATCH_COMMAND` accepts any sequence of command tokens, not just `git apply`. Any executable available in the build environment can be used:
+
+```cmake
+PATCH_COMMAND python ${CMAKE_CURRENT_LIST_DIR}/fix_cmakelists.py
+```
+
+:::tip
+To force reapplication of a patch after modifying it, delete the FetchContent stamp directory at `<build>/_deps/<package-name>-subbuild/` and reconfigure.
 :::
 
 ## Platform and compiler gating

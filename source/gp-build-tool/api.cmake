@@ -280,12 +280,25 @@ macro(gpEndThirdparty)
   gpbt_endThirdparty()
 endmacro()
 
-# @brief Declare the source archive for this package (no git, no submodules).
-# @param[in] URL     Archive URL (tar.gz or zip).
-# @param[in] HASH    CMake hash string (e.g. "SHA256=abc123...").
-# @param[in] TARGET  (Optional) CMake target name the subproject exports. Defaults to "<name>::<name>".
+# @brief Declare the source archive for this package (tar.gz or zip, no git).
+# @param[in] URL          Archive URL (tar.gz or zip).
+# @param[in] HASH         CMake hash string (e.g. "SHA256=abc123...").
+# @param[in] TARGET       (Optional) CMake target name the subproject exports. Defaults to "<name>::<name>".
+# @param[in] PATCH_COMMAND (Optional, multi-value) Command tokens run once after extraction.
+#                         Example: git apply ${CMAKE_CURRENT_LIST_DIR}/my.patch
 macro(gpThirdpartySource)
   gpbt_thirdpartySource(${ARGN})
+endmacro()
+
+# @brief Declare a Git repository as the source for this package.
+# @param[in] REPOSITORY    Git clone URL (HTTPS or SSH).
+# @param[in] TAG           Commit hash, branch name, or tag name.
+# @param[in] SHALLOW       (Flag) Shallow clone (--depth 1). Valid for branches and tags only.
+# @param[in] TARGET        (Optional) CMake target name the subproject exports. Defaults to "<name>::<name>".
+# @param[in] PATCH_COMMAND (Optional, multi-value) Command tokens run once after checkout.
+#                         Example: git apply ${CMAKE_CURRENT_LIST_DIR}/my.patch
+macro(gpThirdpartyGit)
+  gpbt_thirdpartyGit(${ARGN})
 endmacro()
 
 # @brief Declare a prebuilt binary archive for a specific platform / compiler combination.

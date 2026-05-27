@@ -197,19 +197,28 @@ function(gpbt_suppressStrictWarningsInDirectory dir)
   endforeach()
 endfunction()
 
-# Internal: resolve a package by building it from source via FetchContent.
-# Sets outResolved to TRUE in PARENT_SCOPE if a target was created.
+# Internal: resolve a package by building it from source (URL archive or Git repository)
+# via FetchContent. Sets outResolved to TRUE in PARENT_SCOPE if a target was created.
 function(gpbt_resolveSourcePackage cleanName packageName outResolved)
   gpbt_pushScope("thirdparty_${cleanName}")
+  gpbt_getScopedProperty(_packageSourceType          _srcType)
   gpbt_getScopedProperty(_packageSourceUrl           _url)
   gpbt_getScopedProperty(_packageSourceHash          _hash)
   gpbt_getScopedProperty(_packageSourceTarget        _sourceTarget)
   gpbt_getScopedProperty(_packageCmakeArgs           _cmakeArgs)
   gpbt_getScopedProperty(_packageStripStrictWarnings _stripStrictWarnings)
+  gpbt_getScopedProperty(_packageGitRepository       _gitRepo)
+  gpbt_getScopedProperty(_packageGitTag              _gitTag)
+  gpbt_getScopedProperty(_packageGitShallow          _gitShallow)
+  gpbt_getScopedProperty(_packagePatchCommand        _patchCommand)
   gpbt_popScope()
 
-  if(NOT _url)
-    gpbt_log(FATAL "Thirdparty package '${packageName}': no source URL declared and no matching binary found for platform '${GPBT_CURRENT_PLATFORM}' / compiler '${GPBT_CURRENT_COMPILER}'")
+  if(_srcType STREQUAL "GIT")
+    if(NOT _gitRepo OR NOT _gitTag)
+      gpbt_log(FATAL "Thirdparty package '${packageName}': GIT source requires both REPOSITORY and TAG")
+    endif()
+  elseif(NOT _url)
+    gpbt_log(FATAL "Thirdparty package '${packageName}': no source URL or git repository declared and no matching binary found for platform '${GPBT_CURRENT_PLATFORM}' / compiler '${GPBT_CURRENT_COMPILER}'")
   endif()
 
   # Apply any package-specific cmake cache overrides before MakeAvailable
@@ -230,17 +239,40 @@ function(gpbt_resolveSourcePackage cleanName packageName outResolved)
 
   set(_fcName "gp_thirdparty_${cleanName}_source")
 
-  set(_hashArg "")
-  if(_hash)
-    set(_hashArg URL_HASH "${_hash}")
+  # Build the optional PATCH_COMMAND forwarding argument
+  set(_patchArg "")
+  if(_patchCommand)
+    set(_patchArg PATCH_COMMAND ${_patchCommand})
   endif()
 
-  FetchContent_Declare(
-    ${_fcName}
-    URL "${_url}"
-    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-    ${_hashArg}
-  )
+  if(_srcType STREQUAL "GIT")
+    set(_shallowArg "")
+    if(_gitShallow)
+      set(_shallowArg GIT_SHALLOW TRUE)
+    endif()
+
+    FetchContent_Declare(
+      ${_fcName}
+      GIT_REPOSITORY "${_gitRepo}"
+      GIT_TAG        "${_gitTag}"
+      GIT_PROGRESS   TRUE
+      ${_shallowArg}
+      ${_patchArg}
+    )
+  else()
+    set(_hashArg "")
+    if(_hash)
+      set(_hashArg URL_HASH "${_hash}")
+    endif()
+
+    FetchContent_Declare(
+      ${_fcName}
+      URL "${_url}"
+      DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+      ${_hashArg}
+      ${_patchArg}
+    )
+  endif()
 
   # Packages that opted out of strict warnings must also be built as STATIC libraries.
   # BUILD_SHARED_LIBS=ON is set globally by GPBT's defaulter and propagates into every
@@ -277,11 +309,19 @@ function(gpbt_resolveSourcePackage cleanName packageName outResolved)
   if(TARGET "${_sourceTarget}")
     target_link_libraries(gp_thirdparty_${cleanName} INTERFACE "${_sourceTarget}")
   else()
-    gpbt_log(WARNING "Thirdparty '${packageName}' (source): expected target '${_sourceTarget}' was not created by the subproject, set TARGET in gpThirdpartySource() to the correct name")
+    if(_srcType STREQUAL "GIT")
+      gpbt_log(WARNING "Thirdparty '${packageName}' (git): expected target '${_sourceTarget}' was not created by the subproject, set TARGET in gpThirdpartyGit() to the correct name")
+    else()
+      gpbt_log(WARNING "Thirdparty '${packageName}' (source): expected target '${_sourceTarget}' was not created by the subproject, set TARGET in gpThirdpartySource() to the correct name")
+    endif()
   endif()
   add_library(gp::thirdparty::${cleanName} ALIAS gp_thirdparty_${cleanName})
 
-  gpbt_log(SUCCESS "  [SOURCE] ${packageName}, built from source")
+  if(_srcType STREQUAL "GIT")
+    gpbt_log(SUCCESS "  [GIT] ${packageName} @ ${_gitTag}, built from source")
+  else()
+    gpbt_log(SUCCESS "  [SOURCE] ${packageName}, built from source")
+  endif()
   set(${outResolved} TRUE PARENT_SCOPE)
 endfunction()
 
