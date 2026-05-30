@@ -7,6 +7,25 @@ include_guard(GLOBAL)
 include(gp-build-tool/utilities/properties)
 include(gp-build-tool/utilities/logger)
 
+# @brief Helper to determine a "smart" folder for grouping.
+# It takes the first component of a path (e.g. "rhi/base" -> "rhi")
+# to group related targets into higher-level categories automatically.
+function(gpbt_getSmartFolder targetFolder outSmartFolder)
+  if(NOT targetFolder)
+    set(${outSmartFolder} "Uncategorized" PARENT_SCOPE)
+    return()
+  endif()
+
+  # If it contains a slash, take the first part
+  string(FIND "${targetFolder}" "/" slashIndex)
+  if(NOT slashIndex EQUAL -1)
+    string(SUBSTRING "${targetFolder}" 0 ${slashIndex} firstPart)
+    set(${outSmartFolder} "${firstPart}" PARENT_SCOPE)
+  else()
+    set(${outSmartFolder} "${targetFolder}" PARENT_SCOPE)
+  endif()
+endfunction()
+
 # @brief Write a Graphviz DOT file visualizing the registered target dependency graph.
 #
 # Node styling:
@@ -45,17 +64,16 @@ function(gpbt_exportDependencyGraph outputFile)
   string(APPEND _dot "    { rank=same; _legend_module; _legend_executable; _legend_plugin; _legend_test; }\n")
   string(APPEND _dot "  }\n\n")
 
-  # Find all unique folders to group targets
+  # Find all unique "smart" folders to group targets
   set(_folders "")
   foreach(target IN LISTS registeredTargets)
     gpbt_pushScope("${target}")
     gpbt_getScopedProperty(_targetCustomFolder targetFolder)
     gpbt_popScope()
-    if(NOT targetFolder)
-      set(targetFolder "Uncategorized")
-    endif()
-    if(NOT targetFolder IN_LIST _folders)
-      list(APPEND _folders "${targetFolder}")
+
+    gpbt_getSmartFolder("${targetFolder}" smartFolder)
+    if(NOT smartFolder IN_LIST _folders)
+      list(APPEND _folders "${smartFolder}")
     endif()
   endforeach()
 
@@ -78,11 +96,9 @@ function(gpbt_exportDependencyGraph outputFile)
       gpbt_getScopedProperty(_targetLocation targetLocation)
       gpbt_popScope()
 
-      if(NOT targetCustomFolder)
-        set(targetCustomFolder "Uncategorized")
-      endif()
+      gpbt_getSmartFolder("${targetCustomFolder}" targetSmartFolder)
 
-      if(targetCustomFolder STREQUAL folder)
+      if(targetSmartFolder STREQUAL folder)
         if("${targetType}" STREQUAL "executable")
           set(_shape "house")
           set(_color "lightyellow")
@@ -211,17 +227,16 @@ function(gpbt_exportMermaidGraph outputFile)
   # Preamble
   set(_mmd "flowchart LR\n")
 
-  # Find all unique folders to group targets
+  # Find all unique "smart" folders to group targets
   set(_folders "")
   foreach(target IN LISTS registeredTargets)
     gpbt_pushScope("${target}")
     gpbt_getScopedProperty(_targetCustomFolder targetFolder)
     gpbt_popScope()
-    if(NOT targetFolder)
-      set(targetFolder "Uncategorized")
-    endif()
-    if(NOT targetFolder IN_LIST _folders)
-      list(APPEND _folders "${targetFolder}")
+
+    gpbt_getSmartFolder("${targetFolder}" smartFolder)
+    if(NOT smartFolder IN_LIST _folders)
+      list(APPEND _folders "${smartFolder}")
     endif()
   endforeach()
 
@@ -241,11 +256,9 @@ function(gpbt_exportMermaidGraph outputFile)
       gpbt_getScopedProperty(_targetEnableTests targetEnableTests)
       gpbt_popScope()
 
-      if(NOT targetCustomFolder)
-        set(targetCustomFolder "Uncategorized")
-      endif()
+      gpbt_getSmartFolder("${targetCustomFolder}" targetSmartFolder)
 
-      if(targetCustomFolder STREQUAL folder)
+      if(targetSmartFolder STREQUAL folder)
         if("${targetType}" STREQUAL "executable")
           set(_open "[/")
           set(_close "/]")
