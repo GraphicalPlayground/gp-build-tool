@@ -8,15 +8,25 @@ include(gp-build-tool/utilities/properties)
 include(gp-build-tool/utilities/logger)
 
 # @brief Helper to determine a "smart" folder for grouping.
-# It takes the first component of a path (e.g. "rhi/base" -> "rhi")
+# It takes the first component of a target name (e.g. "rhi/base" -> "rhi")
+# or falls back to the target's custom folder (e.g. "modules")
 # to group related targets into higher-level categories automatically.
-function(gpbt_getSmartFolder targetFolder outSmartFolder)
+function(gpbt_getSmartFolder targetName targetFolder outSmartFolder)
+  # If the target name itself has a slash, use its first part as the group.
+  string(FIND "${targetName}" "/" nameSlashIndex)
+  if(NOT nameSlashIndex EQUAL -1)
+    string(SUBSTRING "${targetName}" 0 ${nameSlashIndex} firstPart)
+    set(${outSmartFolder} "${firstPart}" PARENT_SCOPE)
+    return()
+  endif()
+
+  # Fallback to the target folder
   if(NOT targetFolder)
     set(${outSmartFolder} "Uncategorized" PARENT_SCOPE)
     return()
   endif()
 
-  # If it contains a slash, take the first part
+  # If the folder contains a slash, take the first part
   string(FIND "${targetFolder}" "/" slashIndex)
   if(NOT slashIndex EQUAL -1)
     string(SUBSTRING "${targetFolder}" 0 ${slashIndex} firstPart)
@@ -68,10 +78,11 @@ function(gpbt_exportDependencyGraph outputFile)
   set(_folders "")
   foreach(target IN LISTS registeredTargets)
     gpbt_pushScope("${target}")
+    gpbt_getScopedProperty(_targetName targetName)
     gpbt_getScopedProperty(_targetCustomFolder targetFolder)
     gpbt_popScope()
 
-    gpbt_getSmartFolder("${targetFolder}" smartFolder)
+    gpbt_getSmartFolder("${targetName}" "${targetFolder}" smartFolder)
     if(NOT smartFolder IN_LIST _folders)
       list(APPEND _folders "${smartFolder}")
     endif()
@@ -96,7 +107,7 @@ function(gpbt_exportDependencyGraph outputFile)
       gpbt_getScopedProperty(_targetLocation targetLocation)
       gpbt_popScope()
 
-      gpbt_getSmartFolder("${targetCustomFolder}" targetSmartFolder)
+      gpbt_getSmartFolder("${targetName}" "${targetCustomFolder}" targetSmartFolder)
 
       if(targetSmartFolder STREQUAL folder)
         if("${targetType}" STREQUAL "executable")
@@ -231,10 +242,11 @@ function(gpbt_exportMermaidGraph outputFile)
   set(_folders "")
   foreach(target IN LISTS registeredTargets)
     gpbt_pushScope("${target}")
+    gpbt_getScopedProperty(_targetName targetName)
     gpbt_getScopedProperty(_targetCustomFolder targetFolder)
     gpbt_popScope()
 
-    gpbt_getSmartFolder("${targetFolder}" smartFolder)
+    gpbt_getSmartFolder("${targetName}" "${targetFolder}" smartFolder)
     if(NOT smartFolder IN_LIST _folders)
       list(APPEND _folders "${smartFolder}")
     endif()
@@ -256,7 +268,7 @@ function(gpbt_exportMermaidGraph outputFile)
       gpbt_getScopedProperty(_targetEnableTests targetEnableTests)
       gpbt_popScope()
 
-      gpbt_getSmartFolder("${targetCustomFolder}" targetSmartFolder)
+      gpbt_getSmartFolder("${targetName}" "${targetCustomFolder}" targetSmartFolder)
 
       if(targetSmartFolder STREQUAL folder)
         if("${targetType}" STREQUAL "executable")
