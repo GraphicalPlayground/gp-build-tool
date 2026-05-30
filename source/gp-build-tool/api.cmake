@@ -49,11 +49,7 @@ macro(gpApplyGraphicalPlaygroundDefaultPolicy)
   endif()
 
   if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT MSVC AND NOT APPLE)
-    if (GP_USE_LIBCXX)
-      add_compile_options(-stdlib=libc++)
-      add_link_options(-stdlib=libc++)
-      gpbt_log(INFO "GP_USE_LIBCXX is ON: Forcing Clang to use libc++")
-    endif()
+    set(GPBT_USE_LIBCXX ON CACHE BOOL "Force Clang to use libc++ instead of libstdc++")
   endif()
 endmacro()
 

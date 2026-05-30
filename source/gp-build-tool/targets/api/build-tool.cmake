@@ -23,6 +23,15 @@ function(gpbt_startBuildTool)
   gpbt_setProperty(GPBT_TARGETS "")
   gpbt_setProperty(GPBT_CURRENT_PHASE "REGISTRATION")
   gpbt_logSection("Starting REGISTRATION phase")
+
+  # Specifically add libc++ as compile and link option for Clang on non-Apple platforms.
+  if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT MSVC AND NOT APPLE)
+    if (GP_USE_LIBCXX)
+      add_compile_options(-stdlib=libc++)
+      add_link_options(-stdlib=libc++)
+      gpbt_log(INFO "GP_USE_LIBCXX is ON: Forcing Clang to use libc++")
+    endif()
+  endif()
 endfunction()
 
 # @brief Finalize the build tool: sort targets, configure them, and write the install export file.
