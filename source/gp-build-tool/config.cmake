@@ -45,8 +45,14 @@ set(GPBT_THIRDPARTY_MODE "AUTO" CACHE STRING "Thirdparty resolution mode: AUTO (
 set_property(CACHE GPBT_THIRDPARTY_MODE PROPERTY STRINGS AUTO SOURCE BINARY)
 option(GPBT_THIRDPARTY_UPDATES_DISCONNECTED "Skip network checks for already-fetched thirdparty packages (faster reconfigure)" ON)
 
-# LLVM's libc++ is generally more modern and better supported than the older libstdc++ on Linux, especially when using Clang.
-option(GPBT_USE_LIBCXX "Use LLVM's libc++ instead of system libstdc++ (Recommended for Clang on Linux)" OFF)
+# Determine the smart default for libc++
+set(GPBT_DEFAULT_USE_LIBCXX OFF)
+
+# Enable by default ONLY for Clang on Linux/Unix systems
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND UNIX AND NOT APPLE)
+  set(GPBT_DEFAULT_USE_LIBCXX ON)
+endif()
+option(GPBT_USE_LIBCXX "Use LLVM's libc++ instead of system libstdc++ (Recommended for Clang on Linux)" ${GPBT_DEFAULT_USE_LIBCXX})
 
 # Test framework integration
 # NONE       - gpEnableTests() is a no-op; no framework is fetched.

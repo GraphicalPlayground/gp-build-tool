@@ -48,8 +48,8 @@ macro(gpApplyGraphicalPlaygroundDefaultPolicy)
     set(GPBT_TEST_FRAMEWORK "GOOGLETEST" CACHE STRING "Test framework used by gpEnableTests(): NONE | GOOGLETEST | CATCH2 | CUSTOM" FORCE)
   endif()
 
-  if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT MSVC AND NOT APPLE)
-    set(GPBT_USE_LIBCXX ON CACHE BOOL "Force Clang to use libc++ instead of libstdc++")
+  if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND UNIX AND NOT APPLE)
+    set(GPBT_USE_LIBCXX ON)
   endif()
 endmacro()
 
