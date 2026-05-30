@@ -51,6 +51,8 @@ macro(gpApplyGraphicalPlaygroundDefaultPolicy)
   if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND UNIX AND NOT APPLE)
     set(GPBT_USE_LIBCXX ON)
   endif()
+
+  set(GPBT_EXPORT_MERMAID_GRAPH ON CACHE BOOL "Write a Mermaid file of the target dependency graph after configuration" FORCE)
 endmacro()
 
 # @brief Start the build tool definition. This function should be called at the beginning of the CMakeLists.txt file to

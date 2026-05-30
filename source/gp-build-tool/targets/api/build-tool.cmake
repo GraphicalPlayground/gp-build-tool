@@ -68,6 +68,10 @@ function(gpbt_endBuildTool)
     gpbt_exportDependencyGraph("${GPBT_DEPENDENCY_GRAPH_FILE}")
   endif()
 
+  if(GPBT_EXPORT_MERMAID_GRAPH)
+    gpbt_exportMermaidGraph("${GPBT_MERMAID_GRAPH_FILE}")
+  endif()
+
   foreach(target IN LISTS sortedTargets)
     gpbt_pushScope("${target}")
     gpbt_getScopedProperty(_targetLocation targetLocation)

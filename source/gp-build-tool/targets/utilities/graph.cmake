@@ -183,3 +183,182 @@ function(gpbt_exportDependencyGraph outputFile)
   gpbt_log(SUCCESS "Dependency graph written to: ${outputFile}")
   gpbt_log(BULLET "Render with: dot -Tsvg \"${outputFile}\" -o \"${outputFile}.svg\"")
 endfunction()
+
+# @brief Write a Mermaid flowchart file visualizing the registered target dependency graph.
+#
+# Node styling (shapes):
+#   module     - [label] (square)
+#   executable - [/label/] (parallelogram)
+#   plugin     - {{label}} (hexagon)
+#
+# Node styling (colors):
+#   module     - #add8e6 (lightblue)
+#   executable - #ffffe0 (lightyellow)
+#   plugin     - #f08080 (lightcoral)
+#
+# Edge styling by visibility:
+#   PUBLIC   - solid blue
+#   PRIVATE  - solid darkgray
+#   INTERNAL - solid orange
+#   DYNAMIC  - dashed red (runtime load, not linked)
+#
+# Render with:  mermaid-cli (mmdc) or paste into any markdown viewer with mermaid support.
+#
+# @param[in] outputFile Absolute path where the Mermaid file will be written.
+function(gpbt_exportMermaidGraph outputFile)
+  gpbt_getProperty(GPBT_TARGETS registeredTargets)
+
+  # Preamble
+  set(_mmd "flowchart LR\n")
+
+  # Find all unique folders to group targets
+  set(_folders "")
+  foreach(target IN LISTS registeredTargets)
+    gpbt_pushScope("${target}")
+    gpbt_getScopedProperty(_targetCustomFolder targetFolder)
+    gpbt_popScope()
+    if(NOT targetFolder)
+      set(targetFolder "Uncategorized")
+    endif()
+    if(NOT targetFolder IN_LIST _folders)
+      list(APPEND _folders "${targetFolder}")
+    endif()
+  endforeach()
+
+  # Node declarations grouped by Custom Folder
+  set(subgraphIndex 0)
+  foreach(folder IN LISTS _folders)
+    if(NOT folder STREQUAL "Uncategorized")
+      string(APPEND _mmd "  subgraph cluster_${subgraphIndex} [\"${folder}\"]\n")
+    endif()
+
+    foreach(target IN LISTS registeredTargets)
+      gpbt_pushScope("${target}")
+      gpbt_getScopedProperty(_targetCustomFolder targetCustomFolder)
+      gpbt_getScopedProperty(_targetName     targetName)
+      gpbt_getScopedProperty(_targetType     targetType)
+      gpbt_getScopedProperty(_targetExportName targetExportName)
+      gpbt_getScopedProperty(_targetEnableTests targetEnableTests)
+      gpbt_popScope()
+
+      if(NOT targetCustomFolder)
+        set(targetCustomFolder "Uncategorized")
+      endif()
+
+      if(targetCustomFolder STREQUAL folder)
+        if("${targetType}" STREQUAL "executable")
+          set(_open "[/")
+          set(_close "/]")
+          set(_color "#ffffe0")
+        elseif("${targetType}" STREQUAL "plugin")
+          set(_open "{{")
+          set(_close "}}")
+          set(_color "#f08080")
+        else()
+          set(_open "[")
+          set(_close "]")
+          set(_color "#add8e6")
+        endif()
+
+        # Added tooltip for Mermaid (using square brackets for label and then tooltip property if supported,
+        # but Mermaid usually just uses the label. Some renderers support tooltips).
+        # Standard Mermaid doesn't have a direct "tooltip" attribute like DOT, but we can use 'click' for links.
+        string(APPEND _mmd "    ${targetExportName}${_open}\"${targetName}\"${_close}\n")
+        string(APPEND _mmd "    style ${targetExportName} fill:${_color},stroke:#333,stroke-width:1px")
+        if(targetEnableTests)
+          string(APPEND _mmd ",stroke-dasharray: 5 5")
+        endif()
+        string(APPEND _mmd "\n")
+      endif()
+    endforeach()
+
+    if(NOT folder STREQUAL "Uncategorized")
+      string(APPEND _mmd "  end\n\n")
+    endif()
+    math(EXPR subgraphIndex "${subgraphIndex} + 1")
+  endforeach()
+
+  string(APPEND _mmd "\n")
+
+  # Edge declarations
+  set(linkIndex 0)
+  foreach(target IN LISTS registeredTargets)
+    gpbt_pushScope("${target}")
+    gpbt_getScopedProperty(_targetExportName        fromExport)
+    gpbt_getScopedProperty(_targetPublicDependencies   pubDeps)
+    gpbt_getScopedProperty(_targetPrivateDependencies  privDeps)
+    gpbt_getScopedProperty(_targetInternalDependencies intDeps)
+    gpbt_getScopedProperty(_targetDynamicDependencies  dynDeps)
+    gpbt_popScope()
+
+    gpbt_getProperty(GPBT_TARGETS allTargets)
+
+    foreach(dep IN LISTS pubDeps)
+      string(REGEX REPLACE "[^a-zA-Z0-9_]+" "_" cleanDep "${dep}")
+      string(TOLOWER "${cleanDep}" cleanDep)
+      if("${cleanDep}" IN_LIST allTargets)
+        gpbt_pushScope("${cleanDep}")
+        gpbt_getScopedProperty(_targetExportName toExport)
+        gpbt_popScope()
+        string(APPEND _mmd "  ${fromExport} -- \"PUBLIC\" --> ${toExport}\n")
+        string(APPEND _mmd "  linkStyle ${linkIndex} stroke:#0000ff,color:#0000ff\n")
+      else()
+        string(APPEND _mmd "  ${fromExport} -- \"PUBLIC (ext)\" --> ${dep}[\"${dep}\"]\n")
+        string(APPEND _mmd "  linkStyle ${linkIndex} stroke:#0000ff,color:#0000ff,stroke-dasharray: 5 5\n")
+      endif()
+      math(EXPR linkIndex "${linkIndex} + 1")
+    endforeach()
+
+    foreach(dep IN LISTS privDeps)
+      string(REGEX REPLACE "[^a-zA-Z0-9_]+" "_" cleanDep "${dep}")
+      string(TOLOWER "${cleanDep}" cleanDep)
+      if("${cleanDep}" IN_LIST allTargets)
+        gpbt_pushScope("${cleanDep}")
+        gpbt_getScopedProperty(_targetExportName toExport)
+        gpbt_popScope()
+        string(APPEND _mmd "  ${fromExport} -- \"PRIVATE\" --> ${toExport}\n")
+        string(APPEND _mmd "  linkStyle ${linkIndex} stroke:#a9a9a9,color:#a9a9a9\n")
+      else()
+        string(APPEND _mmd "  ${fromExport} -- \"PRIVATE (ext)\" --> ${dep}[\"${dep}\"]\n")
+        string(APPEND _mmd "  linkStyle ${linkIndex} stroke:#a9a9a9,color:#a9a9a9,stroke-dasharray: 5 5\n")
+      endif()
+      math(EXPR linkIndex "${linkIndex} + 1")
+    endforeach()
+
+    foreach(dep IN LISTS intDeps)
+      string(REGEX REPLACE "[^a-zA-Z0-9_]+" "_" cleanDep "${dep}")
+      string(TOLOWER "${cleanDep}" cleanDep)
+      if("${cleanDep}" IN_LIST allTargets)
+        gpbt_pushScope("${cleanDep}")
+        gpbt_getScopedProperty(_targetExportName toExport)
+        gpbt_popScope()
+        string(APPEND _mmd "  ${fromExport} -- \"INTERNAL\" --> ${toExport}\n")
+        string(APPEND _mmd "  linkStyle ${linkIndex} stroke:#ffa500,color:#ffa500\n")
+      else()
+        string(APPEND _mmd "  ${fromExport} -- \"INTERNAL (ext)\" --> ${dep}[\"${dep}\"]\n")
+        string(APPEND _mmd "  linkStyle ${linkIndex} stroke:#ffa500,color:#ffa500,stroke-dasharray: 5 5\n")
+      endif()
+      math(EXPR linkIndex "${linkIndex} + 1")
+    endforeach()
+
+    foreach(dep IN LISTS dynDeps)
+      string(REGEX REPLACE "[^a-zA-Z0-9_]+" "_" cleanDep "${dep}")
+      string(TOLOWER "${cleanDep}" cleanDep)
+      if("${cleanDep}" IN_LIST allTargets)
+        gpbt_pushScope("${cleanDep}")
+        gpbt_getScopedProperty(_targetExportName toExport)
+        gpbt_popScope()
+        string(APPEND _mmd "  ${fromExport} -. \"DYNAMIC\" .-> ${toExport}\n")
+        string(APPEND _mmd "  linkStyle ${linkIndex} stroke:#ff0000,color:#ff0000\n")
+      else()
+        string(APPEND _mmd "  ${fromExport} -. \"DYNAMIC (ext)\" .-> ${dep}[\"${dep}\"]\n")
+        string(APPEND _mmd "  linkStyle ${linkIndex} stroke:#ff0000,color:#ff0000\n")
+      endif()
+      math(EXPR linkIndex "${linkIndex} + 1")
+    endforeach()
+  endforeach()
+
+  file(WRITE "${outputFile}" "${_mmd}")
+  gpbt_log(SUCCESS "Dependency graph (Mermaid) written to: ${outputFile}")
+  gpbt_log(BULLET "Paste the content of \"${outputFile}\" into https://mermaid.live to visualize it.")
+endfunction()
