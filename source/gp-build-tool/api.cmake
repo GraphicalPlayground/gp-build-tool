@@ -47,6 +47,14 @@ macro(gpApplyGraphicalPlaygroundDefaultPolicy)
   if(GPBT_TEST_FRAMEWORK STREQUAL "NONE")
     set(GPBT_TEST_FRAMEWORK "GOOGLETEST" CACHE STRING "Test framework used by gpEnableTests(): NONE | GOOGLETEST | CATCH2 | CUSTOM" FORCE)
   endif()
+
+  if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT MSVC AND NOT APPLE)
+    if (GP_USE_LIBCXX)
+      add_compile_options(-stdlib=libc++)
+      add_link_options(-stdlib=libc++)
+      gpbt_log(INFO "GP_USE_LIBCXX is ON: Forcing Clang to use libc++")
+    endif()
+  endif()
 endmacro()
 
 # @brief Start the build tool definition. This function should be called at the beginning of the CMakeLists.txt file to
