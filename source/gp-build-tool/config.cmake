@@ -46,7 +46,7 @@ set_property(CACHE GPBT_THIRDPARTY_MODE PROPERTY STRINGS AUTO SOURCE BINARY)
 option(GPBT_THIRDPARTY_UPDATES_DISCONNECTED "Skip network checks for already-fetched thirdparty packages (faster reconfigure)" ON)
 
 # LLVM's libc++ is generally more modern and better supported than the older libstdc++ on Linux, especially when using Clang.
-option(GP_USE_LIBCXX "Use LLVM's libc++ instead of system libstdc++ (Recommended for Clang on Linux)" OFF)
+option(GPBT_USE_LIBCXX "Use LLVM's libc++ instead of system libstdc++ (Recommended for Clang on Linux)" OFF)
 
 # Test framework integration
 # NONE       - gpEnableTests() is a no-op; no framework is fetched.

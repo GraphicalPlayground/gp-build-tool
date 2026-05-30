@@ -69,6 +69,6 @@ See [Graphviz Generation](./Features/Graphviz%20Generation.md) for details on re
 
 | Variable | Type | Default | Description |
 | --- | --- | --- | --- |
-| `GP_USE_LIBCXX` | `BOOL` | `OFF` | Use LLVM's libc++ instead of the system libstdc++. Recommended when using Clang on Linux. |
+| `GPBT_USE_LIBCXX` | `BOOL` | `OFF` | Use LLVM's libc++ instead of the system libstdc++. Recommended when using Clang on Linux. |
 
 See [Third Party Management](./Features/Third%20Party%20Management.md) for a full explanation of these options.

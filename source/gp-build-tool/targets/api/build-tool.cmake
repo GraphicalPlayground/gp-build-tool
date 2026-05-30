@@ -26,7 +26,7 @@ function(gpbt_startBuildTool)
 
   # Specifically add libc++ as compile and link option for Clang on non-Apple platforms.
   if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT MSVC AND NOT APPLE)
-    if (GP_USE_LIBCXX)
+    if (GPBT_USE_LIBCXX)
       add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:-stdlib=libc++>")
       add_link_options("$<$<LINK_LANGUAGE:CXX>:-stdlib=libc++>")
       gpbt_log(INFO "GP_USE_LIBCXX is ON: Forcing Clang to use libc++")
