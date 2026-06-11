@@ -23,6 +23,7 @@ macro(gpApplyGraphicalPlaygroundDefaultPolicy)
   set(CMAKE_CXX_STANDARD 23)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
   set(CMAKE_CXX_EXTENSIONS OFF) # Forces standard C++ (no GCC extensions)
+  set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
   # Change the default output directories for all targets to be under the "binaries" folder in the source directory.
   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/binaries/lib)
