@@ -150,6 +150,7 @@ function(gpbt_resolveBinaryPackage cleanName packageName binaryIndex outResolved
     ${_fcName}
     URL "${_url}"
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+    SYSTEM
     ${_hashArg}
   )
   FetchContent_GetProperties(${_fcName})
@@ -256,6 +257,7 @@ function(gpbt_resolveSourcePackage cleanName packageName outResolved)
       GIT_REPOSITORY "${_gitRepo}"
       GIT_TAG        "${_gitTag}"
       GIT_PROGRESS   TRUE
+      SYSTEM
       ${_shallowArg}
       ${_patchArg}
     )
@@ -269,6 +271,7 @@ function(gpbt_resolveSourcePackage cleanName packageName outResolved)
       ${_fcName}
       URL "${_url}"
       DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+      SYSTEM
       ${_hashArg}
       ${_patchArg}
     )
