@@ -92,11 +92,6 @@ function(gpbt_applyCompileFlags)
     "$<$<CONFIG:Debug>:-fno-inline>"
     "$<$<CONFIG:Debug>:-fno-optimize-sibling-calls>"
     "$<$<CONFIG:Debug>:-fstack-protector-strong>"
-    # ASan + UBSan: catches most memory bugs and UB at ~2x overhead.
-    # Wire via a GPBT_ENABLE_SANITIZERS option when that feature is implemented.
-    # "$<$<AND:$<CONFIG:Debug>,$<BOOL:${enableSanitizers}>>:-fsanitize=address,undefined>"
-    # "$<$<AND:$<CONFIG:Debug>,$<BOOL:${enableSanitizers}>>:-fsanitize-recover=undefined>"
-    # "$<$<AND:$<CONFIG:Debug>,$<BOOL:${enableSanitizers}>>:-fno-sanitize-recover=address>"
 
     # Development
     "$<$<CONFIG:Development>:-O2>"
@@ -154,4 +149,32 @@ function(gpbt_applyCompileFlags)
   # Store the ThinLTO flag so the active linker file can append it to link options.
   # lld.cmake and ld64.cmake read _targetLTOFlag to complete the LTO setup.
   gpbt_setScopedProperty(_targetLTOFlag "$<$<CONFIG:Shipping>:-flto=thin>")
+
+  # Sanitizers: excluded from Shipping (incompatible with ThinLTO, -ffast-math, -fomit-frame-pointer).
+  # MSan requires an instrumented libc, not available on Darwin/Apple platforms.
+  if(GPBT_SANITIZER_MEMORY AND APPLE)
+    gpbt_log(WARNING "GPBT_SANITIZER_MEMORY (MSan) is not supported on macOS (Darwin libc is not instrumented). This option will be ignored on this platform.")
+  endif()
+  if(GPBT_SANITIZER_ADDRESS)
+    gpbt_appendScopedProperty(_targetPrivateCompileOptions
+      "$<$<NOT:$<CONFIG:Shipping>>:-fsanitize=address>"
+      "$<$<NOT:$<CONFIG:Shipping>>:-fno-omit-frame-pointer>"
+    )
+  endif()
+  if(GPBT_SANITIZER_THREAD)
+    gpbt_appendScopedProperty(_targetPrivateCompileOptions
+      "$<$<NOT:$<CONFIG:Shipping>>:-fsanitize=thread>"
+    )
+  endif()
+  if(GPBT_SANITIZER_MEMORY)
+    gpbt_appendScopedProperty(_targetPrivateCompileOptions
+      "$<$<AND:$<NOT:$<CONFIG:Shipping>>,$<NOT:$<PLATFORM_ID:Darwin>>>:-fsanitize=memory>"
+      "$<$<AND:$<NOT:$<CONFIG:Shipping>>,$<NOT:$<PLATFORM_ID:Darwin>>>:-fno-omit-frame-pointer>"
+    )
+  endif()
+  if(GPBT_SANITIZER_UNDEFINED_BEHAVIOR)
+    gpbt_appendScopedProperty(_targetPrivateCompileOptions
+      "$<$<NOT:$<CONFIG:Shipping>>:-fsanitize=undefined>"
+    )
+  endif()
 endfunction()

@@ -130,4 +130,21 @@ function(gpbt_applyCompileFlags)
   # MSVC WPO coupling: /GL (set above in compile options) requires /LTCG at link time.
   # msvc-link.cmake handles the /LTCG /OPT:REF /OPT:ICF flags.
   gpbt_setScopedProperty(_targetLTOFlag "")
+
+  # Sanitizers: only AddressSanitizer is supported on Windows with clang-cl.
+  # TSan, MSan, and UBSan have no Windows runtime support.
+  if(GPBT_SANITIZER_THREAD)
+    gpbt_log(WARNING "GPBT_SANITIZER_THREAD (TSan) is not supported on Windows. This option will be ignored.")
+  endif()
+  if(GPBT_SANITIZER_MEMORY)
+    gpbt_log(WARNING "GPBT_SANITIZER_MEMORY (MSan) is not supported on Windows. This option will be ignored.")
+  endif()
+  if(GPBT_SANITIZER_UNDEFINED_BEHAVIOR)
+    gpbt_log(WARNING "GPBT_SANITIZER_UNDEFINED_BEHAVIOR (UBSan) is not supported on Windows. This option will be ignored.")
+  endif()
+  if(GPBT_SANITIZER_ADDRESS)
+    gpbt_appendScopedProperty(_targetPrivateCompileOptions
+      "$<$<NOT:$<CONFIG:Shipping>>:-fsanitize=address>"
+    )
+  endif()
 endfunction()

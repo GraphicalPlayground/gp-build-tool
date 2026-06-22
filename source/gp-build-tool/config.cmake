@@ -76,3 +76,9 @@ if(NOT DEFINED CACHE{GPBT_TEST_FRAMEWORK})
 endif()
 set_property(CACHE GPBT_TEST_FRAMEWORK PROPERTY STRINGS NONE GOOGLETEST CATCH2 CUSTOM)
 set(GPBT_TEST_FRAMEWORK_CUSTOM_TARGET "" CACHE STRING "CMake target to link test executables against when GPBT_TEST_FRAMEWORK=CUSTOM")
+
+# Sanitizer options
+option(GPBT_SANITIZER_ADDRESS "Enable AddressSanitizer (ASan) for all targets" FALSE)
+option(GPBT_SANITIZER_THREAD "Enable ThreadSanitizer (TSan) for all targets" FALSE)
+option(GPBT_SANITIZER_MEMORY "Enable MemorySanitizer (MSan) for all targets" FALSE)
+option(GPBT_SANITIZER_UNDEFINED_BEHAVIOR "Enable UndefinedBehaviorSanitizer (UBSan) for all targets" FALSE)

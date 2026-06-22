@@ -31,4 +31,27 @@ function(gpbt_applyLinkerFlags)
     "$<$<AND:$<NOT:$<PLATFORM_ID:Darwin>>,$<CONFIG:Shipping>>:-Wl,--as-needed>"
     "$<$<AND:$<NOT:$<PLATFORM_ID:Darwin>>,$<CONFIG:Shipping>,$<BOOL:${ltoFlag}>>:${ltoFlag}>"
   )
+
+  # Sanitizer runtimes: pass -fsanitize=... at link time so lld/clang resolves the correct
+  # runtime library. MSan is Linux-only (Darwin libc is not instrumented).
+  if(GPBT_SANITIZER_ADDRESS)
+    gpbt_appendScopedProperty(_targetPrivateLinkOptions
+      "$<$<AND:$<NOT:$<CONFIG:Shipping>>,$<NOT:$<PLATFORM_ID:Darwin>>>:-fsanitize=address>"
+    )
+  endif()
+  if(GPBT_SANITIZER_THREAD)
+    gpbt_appendScopedProperty(_targetPrivateLinkOptions
+      "$<$<AND:$<NOT:$<CONFIG:Shipping>>,$<NOT:$<PLATFORM_ID:Darwin>>>:-fsanitize=thread>"
+    )
+  endif()
+  if(GPBT_SANITIZER_MEMORY)
+    gpbt_appendScopedProperty(_targetPrivateLinkOptions
+      "$<$<AND:$<NOT:$<CONFIG:Shipping>>,$<NOT:$<PLATFORM_ID:Darwin>>>:-fsanitize=memory>"
+    )
+  endif()
+  if(GPBT_SANITIZER_UNDEFINED_BEHAVIOR)
+    gpbt_appendScopedProperty(_targetPrivateLinkOptions
+      "$<$<AND:$<NOT:$<CONFIG:Shipping>>,$<NOT:$<PLATFORM_ID:Darwin>>>:-fsanitize=undefined>"
+    )
+  endif()
 endfunction()

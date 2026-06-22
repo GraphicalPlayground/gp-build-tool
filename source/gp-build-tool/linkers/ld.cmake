@@ -31,4 +31,22 @@ function(gpbt_applyLinkerFlags)
     # Pass the LTO flag at link time to activate the LTO plugin (set by compiler file).
     "$<$<AND:$<CONFIG:Shipping>,$<BOOL:${ltoFlag}>>:${ltoFlag}>"
   )
+
+  # Sanitizer runtimes: pass -fsanitize=... at link time so gcc resolves the correct
+  # runtime library (-lasan, -ltsan, -lubsan). MSan is not supported with GCC/GNU ld.
+  if(GPBT_SANITIZER_ADDRESS)
+    gpbt_appendScopedProperty(_targetPrivateLinkOptions
+      "$<$<NOT:$<CONFIG:Shipping>>:-fsanitize=address>"
+    )
+  endif()
+  if(GPBT_SANITIZER_THREAD)
+    gpbt_appendScopedProperty(_targetPrivateLinkOptions
+      "$<$<NOT:$<CONFIG:Shipping>>:-fsanitize=thread>"
+    )
+  endif()
+  if(GPBT_SANITIZER_UNDEFINED_BEHAVIOR)
+    gpbt_appendScopedProperty(_targetPrivateLinkOptions
+      "$<$<NOT:$<CONFIG:Shipping>>:-fsanitize=undefined>"
+    )
+  endif()
 endfunction()

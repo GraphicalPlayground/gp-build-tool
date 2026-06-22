@@ -140,4 +140,21 @@ function(gpbt_applyCompileFlags)
   # _targetLTOFlag is not used for MSVC (the mechanism is /GL+/LTCG, not -flto=...) but
   # we set it to a non-empty value so the duplicate-flag check doesn't warn.
   gpbt_setScopedProperty(_targetLTOFlag "")
+
+  # Sanitizers: only AddressSanitizer is supported by MSVC.
+  # TSan, MSan, and UBSan have no MSVC runtime support.
+  if(GPBT_SANITIZER_THREAD)
+    gpbt_log(WARNING "GPBT_SANITIZER_THREAD (TSan) is not supported by MSVC. This option will be ignored.")
+  endif()
+  if(GPBT_SANITIZER_MEMORY)
+    gpbt_log(WARNING "GPBT_SANITIZER_MEMORY (MSan) is not supported by MSVC. This option will be ignored.")
+  endif()
+  if(GPBT_SANITIZER_UNDEFINED_BEHAVIOR)
+    gpbt_log(WARNING "GPBT_SANITIZER_UNDEFINED_BEHAVIOR (UBSan) is not supported by MSVC. This option will be ignored.")
+  endif()
+  if(GPBT_SANITIZER_ADDRESS)
+    gpbt_appendScopedProperty(_targetPrivateCompileOptions
+      "$<$<NOT:$<CONFIG:Shipping>>:/fsanitize=address>"
+    )
+  endif()
 endfunction()

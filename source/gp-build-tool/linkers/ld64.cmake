@@ -25,4 +25,22 @@ function(gpbt_applyLinkerFlags)
     "$<$<AND:$<PLATFORM_ID:Darwin>,$<CONFIG:Shipping>>:-Wl,-dead_strip>"
     "$<$<AND:$<PLATFORM_ID:Darwin>,$<CONFIG:Shipping>,$<BOOL:${ltoFlag}>>:${ltoFlag}>"
   )
+
+  # Sanitizer runtimes: pass -fsanitize=... at link time so ld64/clang resolves the correct
+  # runtime dylib. MSan is not supported on Darwin (Apple libc is not instrumented).
+  if(GPBT_SANITIZER_ADDRESS)
+    gpbt_appendScopedProperty(_targetPrivateLinkOptions
+      "$<$<AND:$<PLATFORM_ID:Darwin>,$<NOT:$<CONFIG:Shipping>>>:-fsanitize=address>"
+    )
+  endif()
+  if(GPBT_SANITIZER_THREAD)
+    gpbt_appendScopedProperty(_targetPrivateLinkOptions
+      "$<$<AND:$<PLATFORM_ID:Darwin>,$<NOT:$<CONFIG:Shipping>>>:-fsanitize=thread>"
+    )
+  endif()
+  if(GPBT_SANITIZER_UNDEFINED_BEHAVIOR)
+    gpbt_appendScopedProperty(_targetPrivateLinkOptions
+      "$<$<AND:$<PLATFORM_ID:Darwin>,$<NOT:$<CONFIG:Shipping>>>:-fsanitize=undefined>"
+    )
+  endif()
 endfunction()

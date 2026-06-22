@@ -125,4 +125,26 @@ function(gpbt_applyCompileFlags)
   # Store the LTO flag so the linker file (ld.cmake) can append it to link options.
   # GCC full LTO requires -flto=auto at both compile and link time.
   gpbt_setScopedProperty(_targetLTOFlag "$<$<CONFIG:Shipping>:-flto=auto>")
+
+  # Sanitizers: excluded from Shipping (incompatible with LTO, -ffast-math, -fomit-frame-pointer).
+  # MSan is a Clang-only sanitizer; GCC does not ship an instrumented libc.
+  if(GPBT_SANITIZER_MEMORY)
+    gpbt_log(WARNING "GPBT_SANITIZER_MEMORY (MSan) is not supported by GCC. Use a Clang toolchain or disable this option.")
+  endif()
+  if(GPBT_SANITIZER_ADDRESS)
+    gpbt_appendScopedProperty(_targetPrivateCompileOptions
+      "$<$<NOT:$<CONFIG:Shipping>>:-fsanitize=address>"
+      "$<$<NOT:$<CONFIG:Shipping>>:-fno-omit-frame-pointer>"
+    )
+  endif()
+  if(GPBT_SANITIZER_THREAD)
+    gpbt_appendScopedProperty(_targetPrivateCompileOptions
+      "$<$<NOT:$<CONFIG:Shipping>>:-fsanitize=thread>"
+    )
+  endif()
+  if(GPBT_SANITIZER_UNDEFINED_BEHAVIOR)
+    gpbt_appendScopedProperty(_targetPrivateCompileOptions
+      "$<$<NOT:$<CONFIG:Shipping>>:-fsanitize=undefined>"
+    )
+  endif()
 endfunction()

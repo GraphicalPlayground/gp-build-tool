@@ -29,11 +29,27 @@ function(gpbt_applyLinkerFlags)
   # Default: no-op. Overridden by linker-specific files.
 endfunction()
 
+# @brief Validate that no incompatible sanitizer combination is enabled.
+#        ASan/TSan/MSan are mutually exclusive at runtime; mixing them produces
+#        undefined behavior or build failures.
+function(gpbt_validateSanitizerOptions)
+  if(GPBT_SANITIZER_ADDRESS AND GPBT_SANITIZER_THREAD)
+    gpbt_log(FATAL "GPBT_SANITIZER_ADDRESS and GPBT_SANITIZER_THREAD are mutually exclusive.")
+  endif()
+  if(GPBT_SANITIZER_ADDRESS AND GPBT_SANITIZER_MEMORY)
+    gpbt_log(FATAL "GPBT_SANITIZER_ADDRESS and GPBT_SANITIZER_MEMORY are mutually exclusive.")
+  endif()
+  if(GPBT_SANITIZER_THREAD AND GPBT_SANITIZER_MEMORY)
+    gpbt_log(FATAL "GPBT_SANITIZER_THREAD and GPBT_SANITIZER_MEMORY are mutually exclusive.")
+  endif()
+endfunction()
+
 # @brief Orchestrator called from gpbt_endTarget. Invokes both the compiler and linker
 #        flag functions so each target receives consistent compile+link flags.
 function(gpbt_applyBuildTypeFlags)
   gpbt_checkInTargetDefinition("gpbt_applyBuildTypeFlags")
   gpbt_runOnlyDuringPhase("CONFIGURATION")
+  gpbt_validateSanitizerOptions()
   gpbt_applyCompileFlags()
   gpbt_applyLinkerFlags()
 endfunction()
