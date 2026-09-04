@@ -6,6 +6,7 @@
 [![Read Licensing](.github/assets/button-licensing.svg)](https://graphical-playground.com/licensing)
 
 # [@graphical-playground](https://github.com/GraphicalPlayground)/gp-build-tool
+<!-- gp-source-of-truth:custom:start -->
 
 **Table of content**  
 [Overview](#overview)  
@@ -101,6 +102,8 @@ experimentation.
 - [**Build Tool Guide**](https://docs.graphical-playground.com/docs/engine/build-tool)
 - [**Engine Introduction**](https://docs.graphical-playground.com/docs/engine/intro)
 - [**API Introduction**](https://docs.graphical-playground.com/docs/api/intro)
+
+<!-- gp-source-of-truth:custom:end -->
 
 ## Contributing
 
