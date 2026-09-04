@@ -1,13 +1,15 @@
-![Graphical Playground - GP Build Tool](.github/assets/repository-title.svg)
+![Graphical Playground - Engine](https://github.com/GraphicalPlayground/.github/blob/main/assets/banners/gp-build-tool.svg)
 
-[![Explore Platform](.github/assets/button-platform.svg)](https://graphical-playground.com)
-[![Read Handbook](.github/assets/button-handbook.svg)](https://graphical-playground.com/handbook)
-[![Documentation](.github/assets/button-docs.svg)](https://docs.graphical-playground.com)
-[![Read Licensing](.github/assets/button-licensing.svg)](https://graphical-playground.com/licensing)
+[![Explore the Platform](https://github.com/GraphicalPlayground/.github/blob/main/assets/cta/cta-explore-platform.svg)](https://graphical-playground.com)
+[![Read the Handbook](https://github.com/GraphicalPlayground/.github/blob/main/assets/cta/cta-read-handbook.svg)](https://handbook.graphical-playground.com)
+[![Documentation](https://github.com/GraphicalPlayground/.github/blob/main/assets/cta/cta-documentation.svg)](https://docs.graphical-playground.com)
+[![Learn about Licensing](https://github.com/GraphicalPlayground/.github/blob/main/assets/cta/cta-learn-licensing.svg)](https://graphical-playground.com/licensing)
 
-# [@graphical-playground](https://github.com/GraphicalPlayground)/gp-build-tool
+# [@GraphicalPlayground](https://github.com/GraphicalPlayground)/gp-build-tool
+
+🌎 Read this in: [English](README.md) | [Español](translations/es/README.md) | [Français](translations/fr/README.md) | [简体中文](translations/zh-cn/README.md)
+
 <!-- gp-source-of-truth:custom:start -->
-
 **Table of content**  
 [Overview](#overview)  
 ┕ [The Problem](#the-problem)  
@@ -102,7 +104,6 @@ experimentation.
 - [**Build Tool Guide**](https://docs.graphical-playground.com/docs/engine/build-tool)
 - [**Engine Introduction**](https://docs.graphical-playground.com/docs/engine/intro)
 - [**API Introduction**](https://docs.graphical-playground.com/docs/api/intro)
-
 <!-- gp-source-of-truth:custom:end -->
 
 ## Contributing
@@ -121,9 +122,9 @@ in community discussions or submitting code.
 
 ### Security
 
-If you discover a security vulnerability within `gp-build-tool`, please do not report it by opening
-a public issue. Instead, refer to our [Security Policy](./SECURITY.md) for instructions on how to
-securely disclose the vulnerability to the maintainers.
+If you discover a security vulnerability within `gp-build-tool`, please do not report
+it by opening a public issue. Instead, refer to our [Security Policy](./SECURITY.md) for
+instructions on how to securely disclose the vulnerability to the maintainers.
 
 ### License
 
@@ -133,19 +134,49 @@ directory for full terms regarding modification, distribution, and use in your o
 ### Donations
 
 If you find `gp-build-tool` helpful for your learning, academic research, or game development journey,
-please consider supporting the project. Maintaining those repositories and projects takes
+please consider supporting the project. Maintaining a modern C++ graphics engine takes
 significant time and resources!
 
 You can sponsor the Graphical Playground project through the following links:
 
 - [**Buy Me A Coffee**](https://www.buymeacoffee.com/GraphicalPlayground)
 - [**GitHub Sponsors**](https://github.com/sponsors/GraphicalPlayground)
-- [**Direct Donation**](https://graphical-playground.com/donate)
+- [**Open Collective**](https://opencollective.com/graphical-playground)
+- [**Thanks Dev**](https://thanks.dev/u/gh/GraphicalPlayground)
+- [**Direct donation**](https://graphical-playground.com/donate)
 
 You can see the full list of sponsors and supporters on our
 [Sponsors Page](https://graphical-playground.com/sponsors) or in [DONORS.md](./DONORS.md).
 Your support helps us continue to develop high-quality educational resources and maintain the engine
 for the next generation of graphics engineers.
 
+## Contact
+
+If you have any questions, suggestions, or want to share your projects built with `gp-build-tool`, we
+would love to hear from you! You can reach out to us through the following channels:
+
+- **GitHub Discussions**: [Join the Conversation](https://github.com/orgs/GraphicalPlayground/discussions)
+- **Email**:
+  - Support: <mailto:support@graphical-playground.com>
+  - Contact: <mailto:contact@graphical-playground.com>
+  - Security: <mailto:security@graphical-playground.com>
+  - Marketing: <mailto:marketing@graphical-playground.com>
+  - Legal: <mailto:legal@graphical-playground.com>
+  - Sponsor: <mailto:sponsor@graphical-playground.com>
+  - Press: <mailto:press@graphical-playground.com>
+  - Billing: <mailto:billing@graphical-playground.com>
+  - Partnerships: <mailto:partnerships@graphical-playground.com>
+  - Feedback: <mailto:feedback@graphical-playground.com>
+  - Accessibility: <mailto:accessibility@graphical-playground.com>
+  - Abuse: <mailto:abuse@graphical-playground.com>
+  - Careers: <mailto:careers@graphical-playground.com>
+  - Privacy: <mailto:privacy@graphical-playground.com>
+- **Social Media**:
+  - [**Discord**](https://discord.graphical-playground.com)
+  - [**GitHub**](https://github.com/GraphicalPlayground)
+  - [**LinkedIn**](https://linkedin.com/company/graphical-playground)
+
 ---
 © 2026 Graphical Playground. Built for the next generation of graphics engineers.
+
+![Graphical Playground](https://github.com/GraphicalPlayground/.github/blob/main/assets/misc/gplayd-footer.svg)
