@@ -6,6 +6,14 @@
     }
   ],
   "settings": {
+    "material-icon-theme.folders.associations": {
+      "gp-build-tool": "tools",
+      "compilers": "batch",
+      "linkers": "contract",
+      "platforms": "client",
+      "targets": "target",
+      "frameworks": "lib"
+    },
     "editor.insertSpaces": true,
     "[cmake]": {
       "editor.tabSize": 2,
