@@ -1,0 +1,83 @@
+{
+  "folders": [
+    {
+      "path": ".",
+      "name": "GP Build Tool"
+    }
+  ],
+  "settings": {
+    "editor.insertSpaces": true,
+    "[cmake]": {
+      "editor.tabSize": 2,
+      "editor.insertSpaces": true
+    },
+    "[hlsl]": {
+      "editor.tabSize": 2,
+      "editor.insertSpaces": true,
+      "editor.rulers": [
+        120
+      ]
+    },
+    "[c]": {
+      "editor.tabSize": 4,
+      "editor.insertSpaces": true,
+      "editor.rulers": [
+        120
+      ]
+    },
+    "[cpp]": {
+      "editor.tabSize": 4,
+      "editor.insertSpaces": true,
+      "editor.rulers": [
+        120
+      ],
+      "editor.formatOnSave": true,
+      "editor.defaultFormatter": "xaver.clang-format"
+    },
+    "[markdown]": {
+      "editor.tabSize": 2,
+      "editor.insertSpaces": true,
+      "editor.rulers": [
+        100
+      ],
+      "editor.defaultFormatter": "yzhang.markdown-all-in-one"
+    },
+    "[yaml]": {
+      "editor.tabSize": 2
+    },
+    "[shellscript]": {
+      "editor.tabSize": 2
+    },
+    /* Git Settings */
+    "git.addAICoAuthor": "off",
+    "git.autofetch": true,
+    "git.confirmSync": false,
+    "files.eol": "\n",
+    /* Editor Settings */
+    "editor.quickSuggestionsDelay": 0,
+    "editor.quickSuggestions": {
+      "other": true,
+      "comments": false,
+      "strings": false
+    },
+    "chat.titleBar.openInAgentsWindow.enabled": false
+  },
+  "extensions": {
+    "recommendations": [
+      /* Remote Development */
+      "ms-vscode-remote.remote-containers",
+      /* C/C++ */
+      "Gruntfuggly.bettercomment",
+      "ms-vscode.cmake-tools",
+      "cschlosser.doxdocgen",
+      /* Markdown */
+      "bierner.github-markdown-preview",
+      "yzhang.markdown-all-in-one",
+      "bierner.markdown-preview-github-styles",
+      /* Github */
+      "GitHub.vscode-pull-request-github",
+      "github.vscode-github-actions",
+      "me-dutour-mathieu.vscode-github-actions"
+    ]
+  }
+}
