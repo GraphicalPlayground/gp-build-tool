@@ -14,6 +14,7 @@ include(gp-build-tool/targets/api/link-options)
 include(gp-build-tool/targets/api/metadata)
 include(gp-build-tool/targets/api/options)
 include(gp-build-tool/targets/api/sources)
+include(gp-build-tool/utilities/logger)
 include(gp-build-tool/thirdparty/core)
 include(gp-build-tool/testing/core)
 
@@ -360,4 +361,11 @@ endmacro()
 #          packages are unaffected.
 macro(gpThirdpartyDisableStrictWarnings)
   gpbt_thirdpartyDisableStrictWarnings()
+endmacro()
+
+# @brief Log a message at the given severity level.
+# @param[in] severity ERROR | FATAL | WARNING | INFO | SUCCESS | DEBUG | VERBOSE | BULLET
+# @param[in] ... Message tokens, joined with spaces.
+macro(gpLog)
+  gpbt_log(${ARGN})
 endmacro()
