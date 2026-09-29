@@ -6,3 +6,6 @@
 #   git config blame.ignoreRevsFile .git-blame-ignore-revs
 #
 # This file is automatically used by GitHub.com's blame view.
+
+# Fix the legal url in the header of all source files
+2f5619aa554dab7fed4c4e8b124c25fc910d1299

@@ -1,0 +1,19 @@
+{
+  "recommendations": [
+    /* Remote Development */
+    "ms-vscode-remote.remote-containers",
+    /* C/C++ */
+    "Gruntfuggly.bettercomment",
+    "ms-vscode.cmake-tools",
+    "cschlosser.doxdocgen",
+    "KylinIdeTeam.cmake-intellisence",
+    /* Markdown */
+    "bierner.github-markdown-preview",
+    "yzhang.markdown-all-in-one",
+    "bierner.markdown-preview-github-styles",
+    /* Github */
+    "GitHub.vscode-pull-request-github",
+    "github.vscode-github-actions",
+    "me-dutour-mathieu.vscode-github-actions"
+  ]
+}
