@@ -15,6 +15,7 @@ include(gp-build-tool/targets/api/metadata)
 include(gp-build-tool/targets/api/options)
 include(gp-build-tool/targets/api/sources)
 include(gp-build-tool/utilities/logger)
+include(gp-build-tool/utilities/git)
 include(gp-build-tool/thirdparty/core)
 include(gp-build-tool/testing/core)
 
@@ -368,4 +369,118 @@ endmacro()
 # @param[in] ... Message tokens, joined with spaces.
 macro(gpLog)
   gpbt_log(${ARGN})
+endmacro()
+
+# @brief Checks if Git is available on the system.
+# @param[out] outputVariable The variable to store the result (TRUE if Git is available, FALSE otherwise).
+macro(gpIsGitAvailable outputVariable)
+  gpbt_isGitAvailable(${outputVariable})
+endmacro()
+
+# @brief Retrieves the current Git branch name.
+# @param[out] outputBranch The variable to store the current Git branch name.
+macro(gpGetGitBranch outputBranch)
+  gpbt_getGitBranch(${outputBranch})
+endmacro()
+
+# @brief Retrieves the current Git commit hash.
+# @param[out] outputHash The variable to store the current Git commit hash.
+macro(gpGetGitCommitHash outputHash)
+  gpbt_getGitCommitHash(${outputHash})
+endmacro()
+
+# @brief Retrieves the short version of the current Git commit hash.
+# @param[out] outputHash The variable to store the short Git commit hash.
+macro(gpGetShortGitCommitHash outputHash)
+  gpbt_getShortGitCommitHash(${outputHash})
+endmacro()
+
+# @brief Retrieves the date of the current Git commit.
+# @param[out] outputDate The variable to store the date of the current Git commit.
+macro(gpGetGitCommitDate outputDate)
+  gpbt_getGitCommitDate(${outputDate})
+endmacro()
+
+# @brief Retrieves the message of the current Git commit.
+# @param[out] outputMessage The variable to store the message of the current Git commit.
+macro(gpGetGitCommitMessage outputMessage)
+  gpbt_getGitCommitMessage(${outputMessage})
+endmacro()
+
+# @brief Retrieves the author of the current Git commit.
+# @param[out] outputAuthor The variable to store the author of the current Git commit.
+macro(gpGetGitCommitAuthor outputAuthor)
+  gpbt_getGitCommitAuthor(${outputAuthor})
+endmacro()
+
+# @brief Retrieves the committer of the current Git commit.
+# @param[out] outputCommitter The variable to store the committer of the current Git
+macro(gpGetGitCommitCommitter outputCommitter)
+  gpbt_getGitCommitter(${outputCommitter})
+endmacro()
+
+# @brief Retrieves the email of the author of the current Git commit.
+# @param[out] outputEmail The variable to store the email of the author of the current Git commit.
+macro(gpGetGitCommitAuthorEmail outputEmail)
+  gpbt_getGitCommitAuthorEmail(${outputEmail})
+endmacro()
+
+# @brief Retrieves the email of the committer of the current Git commit.
+# @param[out] outputEmail The variable to store the email of the committer of the current Git commit.
+macro(gpGetGitCommitCommitterEmail outputEmail)
+  gpbt_getGitCommitterEmail(${outputEmail})
+endmacro()
+
+# @brief Retrieves the remote URL of the Git repository.
+# @param[out] outputUrl The variable to store the remote URL of the Git repository.
+macro(gpGetGitRemoteUrl outputUrl)
+  gpbt_getGitRemoteUrl(${outputUrl})
+endmacro()
+
+# @brief Retrieves the name of the remote of the Git repository.
+# @param[out] outputName The variable to store the name of the remote of the Git repository.
+macro(gpGetGitRemoteName outputName)
+  gpbt_getGitRemoteName(${outputName})
+endmacro()
+
+# @brief Retrieves the name of the remote branch of the Git repository.
+# @param[out] outputBranch The variable to store the name of the remote branch of the Git repository.
+macro(gpGetGitRemoteBranch outputBranch)
+  gpbt_getGitRemoteBranch(${outputBranch})
+endmacro()
+
+# @brief Checks if the Git working tree is dirty (has uncommitted changes).
+# @param[out] outputDirty The variable to store the result (TRUE if dirty, FALSE otherwise).
+macro(gpIsGitWorkingTreeDirty outputDirty)
+  gpbt_isGitWorkingTreeDirty(${outputDirty})
+endmacro()
+
+# @brief Checks if the current directory is inside a Git repository.
+# @param[out] outputIsRepo The variable to store the result (TRUE if inside a Git repository, FALSE otherwise).
+macro(gpIsGitRepository outputIsRepo)
+  gpbt_isGitRepository(${outputIsRepo})
+endmacro()
+
+# @brief Retrieves the Git describe string for the current commit.
+# @param[out] outputDescribe The variable to store the Git describe string.
+macro(gpGetGitDescribe outputDescribe)
+  gpbt_getGitDescribe(${outputDescribe})
+endmacro()
+
+# @brief Retrieves the latest Git tag in the repository.
+# @param[out] outputTag The variable to store the latest Git tag.
+macro(gpGetGitLatestTag outputTag)
+  gpbt_getGitLatestTag(${outputTag})
+endmacro()
+
+# @brief Retrieves the root directory of the Git repository.
+# @param[out] outputRoot The variable to store the root directory of the Git repository.
+macro(gpGetGitRepoRoot outputRoot)
+  gpbt_getGitRepoRoot(${outputRoot})
+endmacro()
+
+# @brief Updates Git submodules in the repository.
+# @param[in] forceUpdate If TRUE, forces the update of submodules even if they are already initialized.
+macro(gpUpdateGitSubmodules forceUpdate)
+  gpbt_updateGitSubmodules(${forceUpdate})
 endmacro()
