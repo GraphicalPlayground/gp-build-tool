@@ -7,6 +7,7 @@ include_guard(GLOBAL)
 include(gp-build-tool/testing/frameworks/googletest)
 include(gp-build-tool/testing/frameworks/catch2)
 include(gp-build-tool/testing/generate)
+include(CTest)
 
 # @brief Bootstrap all test frameworks required by the current build.
 # @remarks Called by gpbt_endBuildTool() at the start of CONFIGURATION phase, before thirdparty
