@@ -19,6 +19,13 @@ function(gpbt_generateTestTarget cleanName)
   gpbt_getScopedProperty(_targetOutputName   _outputName)
   gpbt_getScopedProperty(_targetCustomFolder _folder)
   gpbt_getScopedProperty(_targetTestFramework _perTargetFW)
+  gpbt_getScopedProperty(_targetTestsWhitebox _whitebox)
+  gpbt_getScopedProperty(_targetPrivateIncludeDirectories _privIncludes)
+  gpbt_getScopedProperty(_targetInternalIncludeDirectories _intIncludes)
+  gpbt_getScopedProperty(_targetPrivateDependencies _privDeps)
+  gpbt_getScopedProperty(_targetInternalDependencies _intDeps)
+  gpbt_getScopedProperty(_targetPrivateCompileDefinitions _privDefs)
+  gpbt_getScopedProperty(_targetInternalCompileDefinitions _intDefs)
   gpbt_popScope()
 
   # Effective framework: per-target override → global default
@@ -82,6 +89,26 @@ function(gpbt_generateTestTarget cleanName)
 
   # Tests have access to the module's PUBLIC interface (headers + transitive deps).
   target_link_libraries(${_testExportName} PRIVATE ${_mainExportName})
+
+  # WHITEBOX: also expose the module's INTERNAL/PRIVATE headers, dependencies and definitions.
+  if(_whitebox)
+    set(_wbIncludes ${_intIncludes} ${_privIncludes})
+    if(_wbIncludes)
+      target_include_directories(${_testExportName} PRIVATE ${_wbIncludes})
+    endif()
+
+    set(_wbDeps ${_intDeps} ${_privDeps})
+    gpbt_resolveDependencyList(_wbDeps _wbResolvedDeps)
+    if(_wbResolvedDeps)
+      target_link_libraries(${_testExportName} PRIVATE ${_wbResolvedDeps})
+    endif()
+
+    set(_wbDefs ${_intDefs} ${_privDefs})
+    if(_wbDefs)
+      target_compile_definitions(${_testExportName} PRIVATE ${_wbDefs})
+    endif()
+    gpbt_log(VERBOSE "Testing: whitebox access enabled for '${_testExportName}'")
+  endif()
 
   # Link against the resolved framework target.
   if(_framework STREQUAL "GOOGLETEST")

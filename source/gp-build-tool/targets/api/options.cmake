@@ -59,14 +59,21 @@ endfunction()
 # @brief Enable the test suite for the current target.
 # @param[in] FRAMEWORK (optional) Per-target framework override: GOOGLETEST | CATCH2 | CUSTOM.
 #   If omitted the global GPBT_TEST_FRAMEWORK is used.
+# @param[in] WHITEBOX (optional) Give the test executable the module's INTERNAL and PRIVATE include
+#   directories, dependencies and compile definitions, in addition to its PUBLIC interface.
 # @remarks Sources are auto-discovered from tests/ next to the target's CMakeLists.txt.
 function(gpbt_enableTests)
   gpbt_checkInTargetDefinition("gpbt_enableTests")
   gpbt_runOnlyDuringPhase("REGISTRATION")
 
-  cmake_parse_arguments(_ET "" "FRAMEWORK" "" ${ARGN})
+  cmake_parse_arguments(_ET "WHITEBOX" "FRAMEWORK" "" ${ARGN})
 
   gpbt_setScopedProperty(_targetEnableTests TRUE)
+  if(_ET_WHITEBOX)
+    gpbt_setScopedProperty(_targetTestsWhitebox TRUE)
+  else()
+    gpbt_setScopedProperty(_targetTestsWhitebox FALSE)
+  endif()
 
   if(_ET_FRAMEWORK)
     string(TOUPPER "${_ET_FRAMEWORK}" _normalizedFramework)

@@ -93,6 +93,18 @@ When targets use different frameworks, GPBT registers and builds both. Resolutio
 per-target FRAMEWORK argument  →  global GPBT_TEST_FRAMEWORK
 ```
 
+### Whitebox access (private/internal)
+
+By default tests link only against the module's PUBLIC interface. Pass `WHITEBOX` to also give the test executable the module's `internal/` and `private/` include directories, its INTERNAL and PRIVATE dependencies, and its INTERNAL and PRIVATE compile definitions:
+
+```cmake
+gpStartModule("rhi/vulkan")
+  gpEnableTests(WHITEBOX)
+gpEndModule()
+```
+
+`WHITEBOX` can be combined with `FRAMEWORK`, e.g. `gpEnableTests(FRAMEWORK CATCH2 WHITEBOX)`.
+
 ### Test source directory layout
 
 Put test source files in a `tests/` subdirectory next to the target's `CMakeLists.txt`:
