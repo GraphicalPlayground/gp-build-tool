@@ -179,6 +179,7 @@ function(gpbt_setupTargetProperties inTargetType inTargetName inTargetLocation i
     _targetIsHeaderOnly FALSE
     _targetEnableTests FALSE
     _targetTestFramework ""
+    _targetTestsWhitebox FALSE
     _targetEnableBenchmarks FALSE
     _targetEnableExamples FALSE
     _targetEnableISPC FALSE

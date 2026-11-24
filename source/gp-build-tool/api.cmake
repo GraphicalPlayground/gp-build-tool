@@ -223,6 +223,8 @@ endmacro()
 # @brief Enable tests for the current target.
 # @param[in] FRAMEWORK (optional) Per-target override: GOOGLETEST | CATCH2 | CUSTOM.
 #   If omitted the global GPBT_TEST_FRAMEWORK setting is used.
+# @param[in] WHITEBOX (optional) Tests also get the module's INTERNAL/PRIVATE include dirs,
+#   dependencies and compile definitions.
 macro(gpEnableTests)
   gpbt_enableTests(${ARGN})
 endmacro()
