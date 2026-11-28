@@ -366,6 +366,61 @@ macro(gpThirdpartyDisableStrictWarnings)
   gpbt_thirdpartyDisableStrictWarnings()
 endmacro()
 
+# @brief Declare source files that GPBT should compile for this thirdparty dependency.
+# @param[in] ... Source file paths (relative to the thirdparty source dir, absolute, or generator expressions).
+macro(gpThirdpartySetSources)
+  gpbt_thirdpartySetSources(${ARGN})
+endmacro()
+
+# @brief Declare platform-specific source files for this thirdparty dependency.
+# @param[in] ... Platform sections keyed by GP platform tokens (Windows, macOS, iOS, Android, Linux, FreeBSD).
+macro(gpThirdpartySetSourcesByPlatform)
+  gpbt_thirdpartySetSourcesByPlatform(${ARGN})
+endmacro()
+
+# @brief Declare include directories exposed through the GPBT-managed thirdparty target.
+# @param[in] ... Directory paths (relative to the thirdparty source dir, absolute, or generator expressions).
+#                Optional PUBLIC | PRIVATE | INTERFACE keywords (default: PUBLIC).
+macro(gpThirdpartySetIncludeDirectories)
+  gpbt_thirdpartySetIncludeDirectories(${ARGN})
+endmacro()
+
+# @brief Control the CMake library type for GPBT-managed thirdparty target generation.
+# @param[in] libraryType STATIC | SHARED | MODULE | OBJECT | INTERFACE
+macro(gpThirdpartySetLibraryType libraryType)
+  gpbt_thirdpartySetLibraryType("${libraryType}")
+endmacro()
+
+# @brief Declare compile definitions for the thirdparty target.
+# @param[in] ... Preprocessor definitions. Optional PUBLIC | PRIVATE | INTERFACE keywords (default: PUBLIC).
+macro(gpThirdpartySetCompileDefinitions)
+  gpbt_thirdpartySetCompileDefinitions(${ARGN})
+endmacro()
+
+# @brief Declare compiler options for the thirdparty target.
+# @param[in] ... Compiler flags. Optional PUBLIC | PRIVATE | INTERFACE keywords (default: PRIVATE).
+macro(gpThirdpartySetCompileOptions)
+  gpbt_thirdpartySetCompileOptions(${ARGN})
+endmacro()
+
+# @brief Declare additional libraries required by the thirdparty target.
+# @param[in] ... Library targets or link flags. Optional PUBLIC | PRIVATE | INTERFACE keywords (default: PUBLIC).
+macro(gpThirdpartySetLinkLibraries)
+  gpbt_thirdpartySetLinkLibraries(${ARGN})
+endmacro()
+
+# @brief Declare required CMake compile features for the thirdparty target.
+# @param[in] ... Compile features (e.g. cxx_std_17). Optional PUBLIC | PRIVATE | INTERFACE keywords (default: PUBLIC).
+macro(gpThirdpartySetCompileFeatures)
+  gpbt_thirdpartySetCompileFeatures(${ARGN})
+endmacro()
+
+# @brief Control POSITION_INDEPENDENT_CODE on a GPBT-managed thirdparty target.
+# @param[in] enabled ON | OFF
+macro(gpThirdpartySetPositionIndependentCode enabled)
+  gpbt_thirdpartySetPositionIndependentCode("${enabled}")
+endmacro()
+
 # @brief Log a message at the given severity level.
 # @param[in] severity ERROR | FATAL | WARNING | INFO | SUCCESS | DEBUG | VERBOSE | BULLET
 # @param[in] ... Message tokens, joined with spaces.
