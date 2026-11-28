@@ -295,12 +295,189 @@ If a target named `gp::thirdparty::d3d12` does not exist on a given platform bec
 
 ## Consuming a thirdparty package
 
-Once resolved, a package is available as `gp::thirdparty::<name>`, where `<name>` is the snake_case form of the package name (`nlohmann-json` becomes `nlohmann_json`, for example):
+Once resolved, every thirdparty package is exposed through a consistent GPBT-managed alias:
 
 ```cmake
-gpStartModule("editor/config")
+gp::thirdparty::<name>
+```
+
+where `<name>` is the `snake_case` form of the package name (`nlohmann-json` becomes `nlohmann_json`, `imgui` stays `imgui`). Consuming modules never need to know whether a package came from `SYSTEM`, `BINARY`, an upstream CMake subproject, or GPBT-managed source compilation:
+
+```cmake
+gpStartModule("editor")
   gpAddDependency(PRIVATE gp::thirdparty::nlohmann_json)
+  gpAddDependency(PRIVATE gp::thirdparty::imgui)
 gpEndModule()
+```
+
+## Upstream CMake targets vs. GPBT-managed targets
+
+When resolving a `SOURCE` or `GIT` package, GPBT supports two integration paths and always exposes the result as `gp::thirdparty::<name>`:
+
+1. **Upstream CMake target wrapping (automatic):** If the package does not declare manual sources, include directories, or a library type (or if an explicit `TARGET` is passed to `gpThirdpartySource()` / `gpThirdpartyGit()`), GPBT configures the subproject via `FetchContent_MakeAvailable()` and wraps the upstream target in an `INTERFACE` target under `gp::thirdparty::<name>`. All transitive include directories, compile definitions, and link requirements from the upstream target are preserved, and sources are never compiled twice.
+2. **GPBT-managed target generation (manual source integration):** Some C/C++ libraries (such as Dear ImGui, stb, or custom C libraries) do not provide an official `CMakeLists.txt` or do not export a usable CMake target. When you declare `gpThirdpartySetSources()`, `gpThirdpartySetSourcesByPlatform()`, `gpThirdpartySetIncludeDirectories()`, or `gpThirdpartySetLibraryType()` without an upstream `TARGET`, GPBT populates the source tree without invoking `add_subdirectory()` and generates the `gp::thirdparty::<name>` target directly.
+
+:::note
+If you specify both an upstream `TARGET` and manual source declarations, GPBT checks whether the upstream target exists after `FetchContent_MakeAvailable()`. If it exists, GPBT wraps the upstream target and skips manual source compilation to avoid duplicate compilation; if it does not exist, GPBT falls back to generating the managed target.
+:::
+
+### Complete source-only example: Dear ImGui
+
+Dear ImGui does not ship an official CMake build system. The descriptor below downloads the docking archive, compiles only the core library as a static library, and exposes `gp::thirdparty::imgui`:
+
+```cmake
+include(gp-build-tool)
+
+gpStartThirdparty("imgui" VERSION "1.93.1")
+  gpThirdpartySource(
+    URL  "https://github.com/ocornut/imgui/archive/refs/tags/v1.93.1-docking.tar.gz"
+    HASH "SHA256=055a0b9023905e7ad9c0852706a7b19ca4cc8a34e56f4b25732edb9d8efda961"
+  )
+
+  gpThirdpartySetLibraryType(STATIC)
+
+  gpThirdpartySetSources(
+    imgui.cpp
+    imgui_draw.cpp
+    imgui_tables.cpp
+    imgui_widgets.cpp
+  )
+
+  gpThirdpartySetIncludeDirectories(".")
+gpEndThirdparty()
+```
+
+Consuming it in a module requires no special handling:
+
+```cmake
+gpStartModule("editor")
+  gpAddDependency(PRIVATE gp::thirdparty::imgui)
+gpEndModule()
+```
+
+### Header-only source package without CMake
+
+For a header-only library with no `CMakeLists.txt`, declare only its include directories. When no sources are declared, GPBT defaults the library type to `INTERFACE`:
+
+```cmake
+gpStartThirdparty("stb" VERSION "2024.1")
+  gpThirdpartyGit(
+    REPOSITORY "https://github.com/nothings/stb.git"
+    TAG        "5c205738c191bcb0abc65c4febfa9bd25ff35234"
+  )
+  gpThirdpartySetIncludeDirectories(".")
+gpEndThirdparty()
+```
+
+### Configuration utilities for GPBT-managed targets
+
+All utilities below are called inside a `gpStartThirdparty()` / `gpEndThirdparty()` block. Repeated calls accumulate entries and ignore duplicates (except compile options, where flag ordering and pairs are preserved).
+
+#### `gpThirdpartySetSources(...)`
+
+Declares source files to compile as part of the generated target. Relative paths are resolved against the downloaded thirdparty source directory; absolute paths and CMake generator expressions are preserved. Non-generator-expression files are validated to exist at configuration time.
+
+```cmake
+gpThirdpartySetSources(
+  imgui.cpp
+  imgui_draw.cpp
+  imgui_tables.cpp
+  imgui_widgets.cpp
+)
+```
+
+#### `gpThirdpartySetSourcesByPlatform(...)`
+
+Declares platform-specific source files keyed by GP platform tokens (`Windows`, `macOS`, `iOS`, `Android`, `Linux`, `FreeBSD`). Only the sources matching the active `GPBT_CURRENT_PLATFORM` are compiled.
+
+```cmake
+gpThirdpartySetSourcesByPlatform(
+  Windows
+    src/platform_win32.cpp
+  Linux
+    src/platform_linux.cpp
+  macOS
+    src/platform_macos.mm
+)
+```
+
+#### `gpThirdpartySetIncludeDirectories(...)`
+
+Declares include directories exposed by the target. Relative paths are resolved against the thirdparty source directory; absolute paths and generator expressions are supported. Include directories are attached with `SYSTEM` semantics so thirdparty headers do not trigger strict warnings in consuming modules.
+
+Optional `PUBLIC`, `PRIVATE`, and `INTERFACE` keywords are supported (default: `PUBLIC`, mapped to `INTERFACE` on `INTERFACE` targets):
+
+```cmake
+gpThirdpartySetIncludeDirectories(
+  "."
+  "include"
+  PRIVATE
+    "src/internal"
+)
+```
+
+#### `gpThirdpartySetLibraryType(<type>)`
+
+Controls the CMake target type created by GPBT when generating a managed target.
+
+| Type | Behavior & Implications |
+| --- | --- |
+| `STATIC` | Compiled into a static archive (`.lib` / `.a`). **Default when sources are declared.** Safest cross-platform option for libraries that lack `__declspec(dllexport)` annotations on Windows. |
+| `SHARED` | Compiled into a shared library (`.dll` / `.so` / `.dylib`). On Windows, GPBT automatically enables `WINDOWS_EXPORT_ALL_SYMBOLS` so import libraries are generated even without explicit export macros. |
+| `MODULE` | Compiled into a dynamically loadable plugin/module. Cannot be linked via `target_link_libraries()` (consume as a `DYNAMIC` dependency or locate via `$<TARGET_FILE:gp::thirdparty::<name>>`). |
+| `OBJECT` | Compiled into object files without archiving. Consuming `gp::thirdparty::<name>` via `gpAddDependency()` propagates both usage requirements and compiled object files into the consumer. Ensure `POSITION_INDEPENDENT_CODE` is `ON` when linking into shared libraries on Unix. |
+| `INTERFACE` | Header-only target with no compiled sources. **Default when no sources are declared.** Combining `INTERFACE` with `gpThirdpartySetSources()` is a configuration error. |
+
+#### `gpThirdpartySetCompileDefinitions(...)`
+
+Declares preprocessor definitions on the target. Optional `PUBLIC`, `PRIVATE`, and `INTERFACE` keywords are supported (default: `PUBLIC`).
+
+```cmake
+gpThirdpartySetCompileDefinitions(
+  IMGUI_DISABLE_OBSOLETE_FUNCTIONS
+  IMGUI_USE_WCHAR32
+)
+```
+
+#### `gpThirdpartySetCompileOptions(...)`
+
+Declares compiler flags for the target. Optional `PUBLIC`, `PRIVATE`, and `INTERFACE` keywords are supported. **Defaults to `PRIVATE`** so thirdparty-specific compiler flags do not leak into consuming modules.
+
+```cmake
+gpThirdpartySetCompileOptions(
+  PRIVATE
+    $<$<CXX_COMPILER_ID:MSVC>:/W4>
+    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall>
+)
+```
+
+#### `gpThirdpartySetLinkLibraries(...)`
+
+Declares additional libraries or targets required by the thirdparty target. Optional `PUBLIC`, `PRIVATE`, and `INTERFACE` keywords are supported (default: `PUBLIC`).
+
+```cmake
+gpThirdpartySetLinkLibraries(
+  PRIVATE
+    Threads::Threads
+)
+```
+
+#### `gpThirdpartySetCompileFeatures(...)`
+
+Declares required CMake compile features (such as `cxx_std_17` or `c_std_11`). Optional `PUBLIC`, `PRIVATE`, and `INTERFACE` keywords are supported (default: `PUBLIC`).
+
+```cmake
+gpThirdpartySetCompileFeatures(
+  cxx_std_17
+)
+```
+
+#### `gpThirdpartySetPositionIndependentCode(<ON|OFF>)`
+
+Explicitly sets the `POSITION_INDEPENDENT_CODE` property on a GPBT-managed compiled target. Useful when static or object thirdparty libraries are linked into shared engine modules.
+
+```cmake
+gpThirdpartySetPositionIndependentCode(ON)
 ```
 
 ## Fast reconfiguration
