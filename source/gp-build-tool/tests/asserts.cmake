@@ -263,7 +263,18 @@ function(gpbt_testResetBuildTool)
   gpbt_setProperty(GPBT_TARGETS "")
   gpbt_setProperty(GPBT_CURRENT_PHASE "")
   gpbt_setProperty(GPBT_IS_IN_TARGET_DEFINITION FALSE)
+  gpbt_setProperty(GPBT_IS_IN_THIRDPARTY_DEFINITION FALSE)
+  gpbt_setProperty(GPBT_THIRDPARTY_PACKAGES "")
   gpbt_setProperty("__GPBT_SCOPE_STACK__" "")
+endfunction()
+
+# @brief Read a scoped property from a specific thirdparty package by its clean name without
+#        disturbing the current scope stack. Used in test assertions only.
+function(gpbt_testGetThirdpartyProperty packageCleanName key outVar)
+  gpbt_pushScope("thirdparty_${packageCleanName}")
+  gpbt_getScopedProperty("${key}" _val)
+  gpbt_popScope()
+  set(${outVar} "${_val}" PARENT_SCOPE)
 endfunction()
 
 # @brief Read a scoped property from a specific target by its clean name without
