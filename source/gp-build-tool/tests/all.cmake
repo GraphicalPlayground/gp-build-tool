@@ -19,4 +19,7 @@ include(gp-build-tool/tests/targets/dependencies)
 include(gp-build-tool/tests/targets/options)
 include(gp-build-tool/tests/targets/sort)
 
+# Thirdparty management tests
+include(gp-build-tool/tests/thirdparty/source-targets)
+
 gpbt_dumpTestStats()
